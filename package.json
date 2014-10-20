@@ -1,0 +1,31 @@
+{
+  "name": "ToilettesBordeaux",
+  "version": "0.0.0",
+  "description": "## Données",
+  "main": "index.js",
+  "scripts": {
+    "build": "browserify js/main.js -o app.js -d",
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "watch": "watchify js/main.js -o app.js -d -v",
+    "serve": "devserver"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/anthill/ToilettesBordeaux.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/anthill/ToilettesBordeaux/issues"
+  },
+  "dependencies": {
+    "browserify": "~6.1.0",
+    "leaflet": "~0.7.3"
+  },
+  "devDependencies": {
+    "watchify": "~2.0.0",
+    "grunt": "~0.4.5",
+    "grunt-devserver": "~0.6.0"
+  }
+}
