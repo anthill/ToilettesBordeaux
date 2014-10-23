@@ -7,7 +7,7 @@ function serializeLatLng(ll) {
 }
 
 function calcRoute(startLocation, endLocation) {    
-    var mode = google.maps.DirectionsTravelMode.DRIVING;
+    var mode = google.maps.DirectionsTravelMode.WALKING;
 
     var request = {
         origin: startLocation,
@@ -20,8 +20,8 @@ function calcRoute(startLocation, endLocation) {
 	    	console.log('status ', status);
 
 	    	if (status === google.maps.DirectionsStatus.OK) {
-
-				resolve(response);
+	    		console.log('response ', response);
+				resolve(response.route[0]);
 	      	}
 	      	else {
 	      		reject(status);

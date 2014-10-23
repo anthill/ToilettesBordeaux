@@ -3,12 +3,10 @@
 var L = require('leaflet');
 var geo = require('./geolocation.js');
 var itinerary = require('./itCalculation.js');
+var findClosest = require('./findClosest.js');
 
 var BORDEAUX_COORDS = [44.84, -0.57];
 var map = L.map('map').setView(BORDEAUX_COORDS, 12);
-
-var latitude;
-var longitude;
 
 L.tileLayer('http://api.tiles.mapbox.com/v3/ourson.k0i572pc/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
@@ -24,9 +22,10 @@ var typologieToCSSClass = {
 
 var marker;
 
+// Get user position
 function updatePosition(position){
- 	latitude  = position.coords.latitude;
-	longitude = position.coords.longitude;
+ 	var latitude  = position.coords.latitude;
+	var longitude = position.coords.longitude;
 
 
 	var icon = L.divIcon({
@@ -40,10 +39,18 @@ function updatePosition(position){
 
 	marker = L.marker([latitude, longitude], {icon: icon});
 	map.addLayer(marker);
+
+	return {
+		lat: latitude,
+		lng: longitude
+	}
 }
 
-geo(updatePosition);
-
+var position = geo(updatePosition);
+	// .then(function(position){
+	// 	console.log("Position ", position);
+	// 	resolve(position);
+	// });
 
 
 // Get toilet data
@@ -89,8 +96,30 @@ var toilettesP = getContents('data/toilettes.json')
     });
  
 
-toilettesP.then(function(toilettes){
+Promise.all([toilettesP, position]).then(function(values){
+
+	var toilettes = values[0],
+		position = values[1];
+
+	console.log("Position2 ", position.lat);
+	var closest;
+	var distance = 100000;
+	var route;
+
 	toilettes.forEach(function(element){
+		var destination = {lat: element.lat, lng: element.lng};
+
+		itinerary(position, destination).then(function(result){
+			// find closest element
+			if (result.legs[0].distance < distance){
+				distance = result.legs[0].distance;
+				closest = element;
+				route = result.overview_path;
+			}
+		}).catch(function(err){
+			console.error(err);
+		});
+
 		// Add markers asap with an approximate color
 	    var icon = L.divIcon({
 	        className: ['icon', element.class].join(' '),
@@ -98,31 +127,61 @@ toilettesP.then(function(toilettes){
 	    });
 	    
 	    var marker = L.marker([element.lat, element.long], {icon: icon});
-
 	    
 	    map.addLayer(marker);
     
 		// display toilet type
 		// marker.on('click', afficheType());
 	})
+
+	// // draw route
+	// var routeLatLng;
+	// for (var i = 0; i < route.length; i++){
+	// 	var lat = route[i].k,
+	// 		lng = route[i].B;
+
+	// 	routeLatLng[i] = {lat: lat, lng: lng};
+	// }
+
+	// var polyline = L.polyline(routeLatLng, {color: 'red'}).addTo(map);
+
+
 }).catch(function(err){console.error(err)})
 
 // Find closest toilet
 
-// Get itinerary
-var start = {
-	lat: 44.83155637711,
-	lng: -0.601448460338731
-};
-var end = {
-	lat: 44.8332160196094,
-	lng: -0.561733163630468
-};
 
-itinerary(start ,end).then(function(route){
-	console.log(route);
-	// Draw itinerary
-}).catch(function(err){
-	console.error(err);
-});
+// Get itinerary
+// var start = {
+// 	lat: 44.83155637711,
+// 	lng: -0.601448460338731
+// };
+// var end = {
+// 	lat: 44.8332160196094,
+// 	lng: -0.561733163630468
+// };
+
+// itinerary(start ,end).then(function(result){
+// 	console.log(result);
+// 	console.log(result.routes[0].summary);
+
+// 	var routeLatLng = [];
+// 	var source = result.routes[0].overview_path;
+
+// 	for (var i = 0; i < source.length; i++){
+// 		var lat = source[i].k,
+// 			lng = source[i].B;
+
+// 		routeLatLng[i] = {lat: lat, lng: lng};
+// 	}
+
+// 	var polyline = L.polyline(routeLatLng, {color: 'red'}).addTo(map);
+
+// 	// Draw itinerary
+// }).catch(function(err){
+// 	console.error(err);
+// });
+
+
+
 
