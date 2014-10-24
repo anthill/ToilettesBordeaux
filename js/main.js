@@ -95,17 +95,9 @@ var toilettesP = getContents('data/toilettes.json')
     });
  
 
-Promise.all([toilettesP, position]).then(function(values){
-
-	var toilettes = values[0],
-		position = values[1];
-
-	var closest;
-	var distance = 100000;
-	var route;
-
-	toilettes.forEach(function(element){
-		element.d = Math.sqrt(Math.pow(element.lat - position.lat, 2) + Math.pow(element.lng - position.lng, 2));
+toilettesP.then(function(toilettes){
+    toilettes.forEach(function(element){
+		
 		// Add markers asap with an approximate color
 	    var icon = L.divIcon({
 	        className: ['icon', element.class].join(' '),
@@ -115,11 +107,24 @@ Promise.all([toilettesP, position]).then(function(values){
 	    var marker = L.marker([element.lat, element.lng], {icon: icon});
 	    
 	    map.addLayer(marker);
-	})
+	});
+})
 
+Promise.all([toilettesP, position]).then(function(values){
+
+	var toilettes = values[0],
+		position = values[1];
+
+	var closest;
+	var route;
+
+    toilettes.forEach(function(toilette){
+        toilette.distance = Math.hypot(toilette.lat - position.lat, toilette.lng - position.lng);
+    });
+    
 	toilettes.sort(function (a, b) {
-		return (a.d - b.d);
-	})
+		return (a.distance - b.distance);
+	});
 
 	for (var i = 0; i < 3; i++){
 		console.log(i);
