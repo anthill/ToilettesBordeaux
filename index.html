@@ -5,7 +5,7 @@
 
         <style>
             /*
-              http://www.paulirish.com/2012/box-sizing-border-box-ftw/
+            http://www.paulirish.com/2012/box-sizing-border-box-ftw/
             */
             *, *:before, *:after {
                 box-sizing: border-box;
@@ -13,7 +13,7 @@
             }
 
             /*
-              Repeating the background mostly makes sense in the <body>. Otherwise, people usually want the image and preferably its center (not the top-right corner)
+            Repeating the background mostly makes sense in the <body>. Otherwise, people usually want the image and preferably its center (not the top-right corner)
             */
             *:not(body) {
                 background-repeat: no-repeat;
@@ -22,8 +22,8 @@
             }
 
             /*
-              Makes the hidden attribute works even when an element is styled display: flex
-              http://lists.whatwg.org/pipermail/whatwg-whatwg.org/2014-May/254198.html
+            Makes the hidden attribute works even when an element is styled display: flex
+            http://lists.whatwg.org/pipermail/whatwg-whatwg.org/2014-May/254198.html
             */
             [hidden] {
                 display: none !important;
@@ -36,7 +36,7 @@
             }
 
             /*
-              In applications, there can be lists but HTML lists have bullet points and a bunch of useless styling attributes 
+            In applications, there can be lists but HTML lists have bullet points and a bunch of useless styling attributes 
             */
             ul, ol, menu {
                 margin: 0;
@@ -56,7 +56,7 @@
 
 
             /*
-              fairly classic thing to do
+            fairly classic thing to do
             */
             .table-layout {
                 display: table;
@@ -75,59 +75,77 @@
         </style>
 
         <link href="css/leaflet.css" rel="stylesheet">
-        
+
         <style>
-        #map{
-            height: 100vh;
-            width: 100vw;
-        }
-        
-        .icon{
-            width: 2em;
-            height: 2em;
-            background-color: white;
-            border-radius: 50%;
+            #map{
+                height: 100vh;
+                width: 100vw;
+            }
 
-        }
+            .icon{
+                width: 2em;
+                height: 2em;
+                background-color: white;
+                border-radius: 50%;
 
-        .icon.urinoir{
-            background-color: yellow;
-        }
+            }
 
-        .icon.sanitaire{
-            background-color: blue;
-        }
+            .icon.urinoir{
+                background-color: yellow;
+            }
 
-        .icon.chalet{
-            background-color: red;
-        }
+            .icon.sanitaire{
+                background-color: blue;
+            }
 
-        .icon.sanitaire.urinoir{
-            background-color: green;
-        }
+            .icon.chalet{
+                background-color: red;
+            }
 
-        .icon.handicap{
-            border: 3px black solid;
-        }
+            .icon.sanitaire.urinoir{
+                background-color: green;
+            }
 
-        .icon.user{
-            width: 1em;
-            height: 1em;
-            background-color: black;
-        }
+            .icon.handicap{
+                border: 3px black solid;
+            }
+
+            .icon.user{
+                width: 1em;
+                height: 1em;
+                background-color: black;
+            }
 
         </style>
-        
+
+        <script>
+            // MDN polyfill https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/hypot#Polyfill
+            if (!Math.hypot) {
+                Math.hypot = function hypot() {
+                    var y = 0;
+                    var length = arguments.length;
+
+                    for (var i = 0; i < length; i++) {
+                        if(arguments[i] === Infinity || arguments[i] === -Infinity) {
+                            return Infinity;
+                        }
+                        y += arguments[i] * arguments[i];
+                    }
+                    return Math.sqrt(y);
+                };
+            }
+        </script>
+
         <script defer src="app.js"></script>
-        <script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script>
-        
+        <script src="http://maps.google.com/maps/api/js?sensor=false"></script>
+
         <title> Toilettes Bordeaux </title>
     </head>
 
     <!--
-        TODO:
-        * geoloc all recycling centers.
-    -->
+TODO:
+* geoloc all recycling centers.
+-->
 
     <body>
         <div id="map"></div>
