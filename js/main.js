@@ -17,7 +17,7 @@ var typologieToCSSClass = {
 	"Sanitaire automatique avec urinoir": "sanitaire urinoir",
 	"Chalet de nécessité": "chalet",
 	"Handicapé": "handicap"
-}
+};
 
 var marker;
 
