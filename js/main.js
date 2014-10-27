@@ -85,7 +85,6 @@ Promise.all([toilettesP, position]).then(function(values){
 		position = values[1];
 
 	var distance = 100000;
-	var route;
 
 	toilettes.forEach(function(element){
 		// Calculate rough distance b/w user and toilet
@@ -133,12 +132,14 @@ Promise.all([toilettesP, position]).then(function(values){
     var bounds = L.latLngBounds(southWest, northEast);
     map.fitBounds(bounds);
 
+
+    // When all itineraries are computed
     Promise.all([promises[0], promises[1], promises[2]]).then(function(toilets){
 
 		console.log(toilets);
 		
 		toilets.sort(function (a, b) {
-			return (a.path.legs[0].distance.value - b.path.legs[0].distance.value);
+			return (a.routes[0].legs[0].distance.value - b.routes[0].legs[0].distance.value);
 		})
 
 		// Calculate itineraries for 3 closest toilets
@@ -151,17 +152,18 @@ Promise.all([toilettesP, position]).then(function(values){
 			}
 			
 			// Get route points
-			var destination = L.latLng(result.end.k, result.end.B);
-			route = result.path.overview_path;
+			var destination = L.latLng(result.mc.destination.k, result.mc.destination.B);
+			var route = result.routes[0];
+			var path = route.overview_path;
 			var routeLatLng = [];
-			for (var j = 0; j < route.length; j++)
-				routeLatLng[j] = {lat: route[j].k, lng: route[j].B};
+			for (var j = 0; j < path.length; j++)
+				routeLatLng[j] = {lat: path[j].k, lng: path[j].B};
 
 			// Create and add infos on the route
-			var minutes = Math.floor(result.path.legs[0].duration.value / 60);
-			var secondes = result.path.legs[0].duration.value % 60;
+			var minutes = Math.floor(route.legs[0].duration.value / 60);
+			var secondes = route.legs[0].duration.value % 60;
 			var time = minutes + "' "  + secondes + "\" ";
-			var distance = result.path.legs[0].distance.value;
+			var distance = route.legs[0].distance.value;
 
 			var infos = L.divIcon({
 		        className: ['infos', rank].join(' '),
