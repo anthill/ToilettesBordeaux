@@ -77,7 +77,6 @@ var toilettesP = getToilets('data/toilettes.json')
         	}
         })
     });
- 
 
 // When user and toilet positions are available:
 Promise.all([toilettesP, position]).then(function(values){
@@ -111,6 +110,8 @@ Promise.all([toilettesP, position]).then(function(values){
 	var tempLats = [],
 		tempLngs = [];
 
+	var promises = [];
+
 	// Calculate itineraries for 3 closest toilets
 	for (var i = 0; i < 3; i++){
 		var current = L.latLng(toilettes[i].lat, toilettes[i].lng);
@@ -118,38 +119,7 @@ Promise.all([toilettesP, position]).then(function(values){
 		tempLats.push(current.lat);
 		tempLngs.push(current.lng);
 
-		itinerary(position, toilettes[i]).then(function(result){
-			// Get route points
-			var destination = L.latLng(result.end.k, result.end.B);
-			route = result.path.overview_path;
-			var routeLatLng = [];
-			for (var j = 0; j < route.length; j++)
-				routeLatLng[j] = {lat: route[j].k, lng: route[j].B};
-
-			// Create and add infos on the route
-			var minutes = Math.floor(result.path.legs[0].duration.value / 60);
-			var secondes = result.path.legs[0].duration.value % 60;
-			var time = minutes + "' "  + secondes + "\" ";
-			var distance = result.path.legs[0].distance.value;
-
-			var infos = L.divIcon({
-		        className: 'infos',
-		        iconSize: new L.Point(70, 70),
-		        iconAnchor: new L.Point(35, 100),
-		        html: time + '<div class="subInfos">' + distance + ' m </div>'
-		    });
-
-			
-		    var marker = L.marker(destination, {icon: infos});
-		    
-		    map.addLayer(marker);
-
-		    // Draw route
-			var polyline = L.polyline(routeLatLng, {color: 'red'}).addTo(map);
-
-		}).catch(function(err){
-			console.error(err);
-		});
+		promises[i] = itinerary(position, toilettes[i]);
 	}
 
 	// Fits the map so all 3 shortest routes are displayed
@@ -164,4 +134,61 @@ Promise.all([toilettesP, position]).then(function(values){
     var bounds = L.latLngBounds(southWest, northEast);
     map.fitBounds(bounds);
 
+    Promise.all([promises[0], promises[1], promises[2]]).then(function(toilets){
+
+		console.log(toilets);
+		
+		toilets.sort(function (a, b) {
+			return (a.path.legs[0].distance.value - b.path.legs[0].distance.value);
+		})
+
+		// Calculate itineraries for 3 closest toilets
+		for (var i = 0; i < 3; i++){
+			var result = toilets[i];
+			var rank = '';
+
+			if (i == 0){
+				rank += 'first';
+			}
+			
+			// Get route points
+			var destination = L.latLng(result.end.k, result.end.B);
+			route = result.path.overview_path;
+			var routeLatLng = [];
+			for (var j = 0; j < route.length; j++)
+				routeLatLng[j] = {lat: route[j].k, lng: route[j].B};
+
+			// Create and add infos on the route
+			var minutes = Math.floor(result.path.legs[0].duration.value / 60);
+			var secondes = result.path.legs[0].duration.value % 60;
+			var time = minutes + "' "  + secondes + "\" ";
+			var distance = result.path.legs[0].distance.value;
+
+			var infos = L.divIcon({
+		        className: ['infos', rank].join(' '),
+		        iconSize: new L.Point(70, 70),
+		        iconAnchor: new L.Point(35, 100),
+		        html: time + '<div class="subInfos">' + distance + ' m </div>'
+		    });
+			
+		    var marker = L.marker(destination, {icon: infos});
+		    
+		    map.addLayer(marker);
+
+		    // Draw route
+			var polyline = L.polyline(routeLatLng, {
+				className: ['route', rank].join(' '),
+				color: '#008200',
+				smoothFactor: 3.0,
+            	noClip: true,
+            	opacity: 1
+			}).addTo(map);
+
+		}
+
+	}).catch(function(err){console.error(err)})
+
 }).catch(function(err){console.error(err)})
+
+
+
