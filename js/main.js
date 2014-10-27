@@ -3,6 +3,8 @@
 var L = require('leaflet');
 var geo = require('./geolocation.js');
 var itinerary = require('./itCalculation.js');
+var getToilets = require('./getToilets.js');
+var U = require('./utilities.js');
 
 // set map options
 var BORDEAUX_COORDS = [44.84, -0.57];
@@ -26,8 +28,6 @@ var typologieToCSSClass = {
 	"Handicapé": "handicap"
 }
 
-var marker;
-
 // Get user position
 function updatePosition(position){
  	var latitude  = position.coords.latitude;
@@ -38,6 +38,8 @@ function updatePosition(position){
 		className: 'user icon',
 		iconSize: L.Point(0, 0) // when iconSize is set, CSS is respected. Otherwise, it's overridden -_-#
 	});
+
+	var marker;
 
 	if(marker)
 		map.removeLayer(marker);
@@ -52,37 +54,10 @@ function updatePosition(position){
 	}
 }
 
-function getMaxOfArray(numArray) {
-    return Math.max.apply(null, numArray);
-}
-
-function getMinOfArray(numArray) {
-    return Math.min.apply(null, numArray);
-}
-
 var position = geo(updatePosition);
-	// .then(function(position){
-	// 	console.log("Position ", position);
-	// 	resolve(position);
-	// });
 
-
-// Get toilet data
-function getContents(url){
-    return new Promise(function(resolve, reject){
-        var xhr = new XMLHttpRequest();
-        xhr.open('GET', url);
-        xhr.addEventListener('load', function(){
-            if(xhr.status < 400)
-                resolve(JSON.parse(xhr.responseText));
-            else
-                reject('Could not get content from '+url);
-        });
-        xhr.send();
-    });
-}
-
-var toilettesP = getContents('data/toilettes.json')
+// Get toilets position
+var toilettesP = getToilets('data/toilettes.json')
     .then(function(data){
         console.log('raw', data);
         
@@ -104,6 +79,7 @@ var toilettesP = getContents('data/toilettes.json')
     });
  
 
+// When user and toilet positions are available:
 Promise.all([toilettesP, position]).then(function(values){
 
 	var toilettes = values[0],
@@ -114,11 +90,12 @@ Promise.all([toilettesP, position]).then(function(values){
 	var route;
 
 	toilettes.forEach(function(element){
+		// Calculate rough distance b/w user and toilet
 		element.d = Math.sqrt(Math.pow(element.lat - position.lat, 2) + Math.pow(element.lng - position.lng, 2));
 		// Add markers asap with an approximate color
 	    var icon = L.divIcon({
 	        className: ['icon', element.class].join(' '),
-	        iconSize: L.Point(0, 0) // when iconSize is set, CSS is respected. Otherwise, it's overridden -_-#
+	        iconSize: new L.Point(20, 20) // when iconSize is set, CSS is respected. Otherwise, it's overridden -_-#
 	    });
 	    
 	    var marker = L.marker([element.lat, element.lng], {icon: icon});
@@ -126,6 +103,7 @@ Promise.all([toilettesP, position]).then(function(values){
 	    map.addLayer(marker);
 	})
 
+	// Sort toilets by rough distance
 	toilettes.sort(function (a, b) {
 		return (a.d - b.d);
 	})
@@ -133,40 +111,40 @@ Promise.all([toilettesP, position]).then(function(values){
 	var tempLats = [],
 		tempLngs = [];
 
+	// Calculate itineraries for 3 closest toilets
 	for (var i = 0; i < 3; i++){
-		tempLats.push(toilettes[i].lat);
-		tempLngs.push(toilettes[i].lng);
+		var current = L.latLng(toilettes[i].lat, toilettes[i].lng);
+		
+		tempLats.push(current.lat);
+		tempLngs.push(current.lng);
 
 		itinerary(position, toilettes[i]).then(function(result){
-			// draw route
-			route = result.overview_path;
+			// Get route points
+			var destination = L.latLng(result.end.k, result.end.B);
+			route = result.path.overview_path;
 			var routeLatLng = [];
-			for (var j = 0; j < route.length; j++){
-				var lat = route[j].k,
-					lng = route[j].B;
+			for (var j = 0; j < route.length; j++)
+				routeLatLng[j] = {lat: route[j].k, lng: route[j].B};
 
-				routeLatLng[j] = {lat: lat, lng: lng};
+			// Create and add infos on the route
+			var minutes = Math.floor(result.path.legs[0].duration.value / 60);
+			var secondes = result.path.legs[0].duration.value % 60;
+			var time = minutes + "' "  + secondes + "\" ";
+			var distance = result.path.legs[0].distance.value;
 
-				// use result.bounds.Ea (center) result.bounds.va (span)
-				// use result.legs[0].duration ...distance
-			}
-
-			// create and add infos on the route
 			var infos = L.divIcon({
 		        className: 'infos',
-		        iconSize: L.Point(0, 0),
-		        html: result.legs[0].distance.text + ' - ' + result.legs[0].duration.text // when iconSize is set, CSS is respected. Otherwise, it's overridden -_-#
+		        iconSize: new L.Point(70, 70),
+		        iconAnchor: new L.Point(35, 100),
+		        html: time + '<div class="subInfos">' + distance + ' m </div>'
 		    });
-		    
-		    var center = {};
-		    center.lat = (result.bounds.Ea.j + result.bounds.Ea.k) / 2;
-		    center.lng = (result.bounds.va.j + result.bounds.va.k) / 2;
 
-		    var marker = L.marker([center.lat, center.lng], {icon: infos});
+			
+		    var marker = L.marker(destination, {icon: infos});
 		    
 		    map.addLayer(marker);
 
-		    // draw route
+		    // Draw route
 			var polyline = L.polyline(routeLatLng, {color: 'red'}).addTo(map);
 
 		}).catch(function(err){
@@ -174,23 +152,16 @@ Promise.all([toilettesP, position]).then(function(values){
 		});
 	}
 
-	var north = getMaxOfArray(tempLats),
-		south = getMinOfArray(tempLats),
-		east = getMaxOfArray(tempLngs),
-		west = getMinOfArray(tempLngs);
+	// Fits the map so all 3 shortest routes are displayed
+	var north = U.getMaxOfArray(tempLats),
+		south = U.getMinOfArray(tempLats),
+		east = U.getMaxOfArray(tempLngs),
+		west = U.getMinOfArray(tempLngs);
 
 	var southWest = L.latLng(south, west),
     	northEast = L.latLng(north, east);
     
     var bounds = L.latLngBounds(southWest, northEast);
     map.fitBounds(bounds);
-
-    
-		// display toilet type
-		// marker.on('click', afficheType());
-	// })
-
-	
-
 
 }).catch(function(err){console.error(err)})

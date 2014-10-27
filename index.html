@@ -83,8 +83,8 @@
         }
         
         .icon{
-            width: 2em;
-            height: 2em;
+            /*width: 2em;
+            height: 2em;*/
             background-color: white;
             border-radius: 50%;
 
@@ -117,7 +117,40 @@
         }
 
         .infos{
+            width:auto;
+            padding:8px 0;
+            text-align:center;
+            display: inline-block;
+            float:left;
+            margin:0 8px 0 0;
+            font-size: 2em;
+            width:120px;
+            color:white;
+            font-family: Arial,sans-serif;
+            border-radius: 10%;
             background-color: white;
+            background: #444;
+            background: linear-gradient( #555, #2C2C2C);
+            position: relative;
+        }
+
+        .infos:after {
+            top: 100%;
+            left: 50%;
+            border: solid transparent;
+            content: " ";
+            height: 0;
+            width: 0;
+            position: absolute;
+            pointer-events: none;
+            border-top-color: #2C2C2C;
+            border-width: 15px;
+            margin-left: -15px;
+        }
+
+        .subInfos{
+            font-size: 0.6em;
+            font-style: italic;
         }
 
         </style>
