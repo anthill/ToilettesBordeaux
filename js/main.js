@@ -4,8 +4,15 @@ var L = require('leaflet');
 var geo = require('./geolocation.js');
 var itinerary = require('./itCalculation.js');
 
+// set map options
 var BORDEAUX_COORDS = [44.84, -0.57];
-var map = L.map('map').setView(BORDEAUX_COORDS, 12);
+var map = L.map('map', {
+	center: BORDEAUX_COORDS,
+	zoom: 12,
+	minZoom: 12 // minZoom is set b/c there is no sense to zoom out of Bordeaux
+});
+
+map.setMaxBounds(map.getBounds()); // MaxBounds are set because there is no sense to pan out of Bordeaux
 
 L.tileLayer('http://api.tiles.mapbox.com/v3/ourson.k0i572pc/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
@@ -28,7 +35,6 @@ function updatePosition(position){
 
 
 	var icon = L.divIcon({
-		// comment utiliser le coté ['user icon', element.class].join('') ???
 		className: 'user icon',
 		iconSize: L.Point(0, 0) // when iconSize is set, CSS is respected. Otherwise, it's overridden -_-#
 	});
@@ -38,11 +44,20 @@ function updatePosition(position){
 
 	marker = L.marker([latitude, longitude], {icon: icon});
 	map.addLayer(marker);
+	map.center = L.latLng(latitude, longitude);
 
 	return {
 		lat: latitude,
 		lng: longitude
 	}
+}
+
+function getMaxOfArray(numArray) {
+    return Math.max.apply(null, numArray);
+}
+
+function getMinOfArray(numArray) {
+    return Math.min.apply(null, numArray);
 }
 
 var position = geo(updatePosition);
@@ -77,12 +92,6 @@ var toilettesP = getContents('data/toilettes.json')
         	if (!test)
         		console.error(t);
         	else {
-
-        		//check option
-        		// if (test_option){
-        		// 	console.log(test_option);
-        		// }
-
         		return {
 	                lng: parseFloat(t["x_long"]),
 	                lat: parseFloat(t["y_lat"]),
@@ -121,8 +130,13 @@ Promise.all([toilettesP, position]).then(function(values){
 		return (a.d - b.d);
 	})
 
+	var tempLats = [],
+		tempLngs = [];
+
 	for (var i = 0; i < 3; i++){
-		console.log(i);
+		tempLats.push(toilettes[i].lat);
+		tempLngs.push(toilettes[i].lng);
+
 		itinerary(position, toilettes[i]).then(function(result){
 			// draw route
 			route = result.overview_path;
@@ -132,13 +146,45 @@ Promise.all([toilettesP, position]).then(function(values){
 					lng = route[j].B;
 
 				routeLatLng[j] = {lat: lat, lng: lng};
+
+				// use result.bounds.Ea (center) result.bounds.va (span)
+				// use result.legs[0].duration ...distance
 			}
 
+			// create and add infos on the route
+			var infos = L.divIcon({
+		        className: 'infos',
+		        iconSize: L.Point(0, 0),
+		        html: result.legs[0].distance.text + ' - ' + result.legs[0].duration.text // when iconSize is set, CSS is respected. Otherwise, it's overridden -_-#
+		    });
+		    
+		    var center = {};
+		    center.lat = (result.bounds.Ea.j + result.bounds.Ea.k) / 2;
+		    center.lng = (result.bounds.va.j + result.bounds.va.k) / 2;
+
+		    var marker = L.marker([center.lat, center.lng], {icon: infos});
+		    
+		    map.addLayer(marker);
+
+		    // draw route
 			var polyline = L.polyline(routeLatLng, {color: 'red'}).addTo(map);
+
 		}).catch(function(err){
 			console.error(err);
 		});
 	}
+
+	var north = getMaxOfArray(tempLats),
+		south = getMinOfArray(tempLats),
+		east = getMaxOfArray(tempLngs),
+		west = getMinOfArray(tempLngs);
+
+	var southWest = L.latLng(south, west),
+    	northEast = L.latLng(north, east);
+    
+    var bounds = L.latLngBounds(southWest, northEast);
+    map.fitBounds(bounds);
+
     
 		// display toilet type
 		// marker.on('click', afficheType());
