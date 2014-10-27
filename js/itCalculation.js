@@ -20,8 +20,11 @@ function calcRoute(startLocation, endLocation) {
 	    	console.log('status ', status);
 
 	    	if (status === google.maps.DirectionsStatus.OK) {
-	    		// console.log('response ', response);
-				resolve(response.routes[0]);
+	    		console.log('response ', response);
+				resolve({
+					path: response.routes[0],
+					end: request.destination
+				});
 	      	}
 	      	else {
 	      		reject(status);
