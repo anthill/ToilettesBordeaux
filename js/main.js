@@ -33,11 +33,10 @@ function updatePosition(position){
  	var latitude  = position.coords.latitude;
 	var longitude = position.coords.longitude;
 
-
 	var icon = L.divIcon({
-		className: 'user icon',
-		iconSize: L.Point(0, 0) // when iconSize is set, CSS is respected. Otherwise, it's overridden -_-#
-	});
+	        className: "user",
+	        html: '<i class="fa fa-bullseye fa-2x"></i>'
+	    });
 
 	var marker;
 
@@ -90,11 +89,24 @@ Promise.all([toilettesP, position]).then(function(values){
 		// Calculate rough distance b/w user and toilet
 		element.d = Math.sqrt(Math.pow(element.lat - position.lat, 2) + Math.pow(element.lng - position.lng, 2));
 		// Add markers asap with an approximate color
-	    var icon = L.divIcon({
-	        className: ['icon', element.class].join(' '),
-	        iconSize: new L.Point(20, 20) // when iconSize is set, CSS is respected. Otherwise, it's overridden -_-#
+		var iconMap = {"urinoir" : "male",
+						"sanitaire": "female",
+						"handicap": "wheelchair",
+						"chalet": "umbrella"};
+		var myHtml = '<ul class="fa-ul">\n';
+		element.class.split(" ").filter(function(e){return e != undefined}).forEach(function(string){
+			myHtml += '<li><i class="fa-li fa fa-' + iconMap[string] + ' "></i></li>\n';
+		})
+		myHtml += '</ul>'
+
+		console.log(element.class);
+
+
+		var icon = L.divIcon({
+	        className: "icon",
+	        html: myHtml
 	    });
-	    
+
 	    var marker = L.marker([element.lat, element.lng], {icon: icon});
 	    
 	    map.addLayer(marker);
