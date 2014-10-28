@@ -23,8 +23,8 @@ L.tileLayer('http://api.tiles.mapbox.com/v3/ourson.k0i572pc/{z}/{x}/{y}.png', {
 var typologieToCSSClass = {
 	"Urinoir": "urinoir",
 	"Sanitaire automatique": "sanitaire",
-	"Sanitaire automatique avec urinoir": "sanitaire urinoir",
-	"Chalet de nécessité": "chalet",
+	"Sanitaire automatique avec urinoir": "sanitaire",
+	"Chalet de nécessité": "sanitaire",
 };
 
 var iconMap = {
@@ -41,7 +41,9 @@ function updatePosition(position){
 
 	var icon = L.divIcon({
 	        className: "user",
-	        html: '<i class="fa fa-bullseye fa-2x"></i>'
+	        iconSize: new L.Point(72, 72),
+		    iconAnchor: new L.Point(36, 36),
+	        html: '<span class="fa-stack fa-lg fa-3x"><i class="fa fa-circle fa-stack-1x"></i><i class="fa fa-bullseye fa-stack-1x"></i></span>'
 	    });
 
 	var marker;
@@ -68,7 +70,7 @@ var toilettesP = getToilets('data/toilettes.json')
         
         return data["d"].map(function(t){
         	var test = typologieToCSSClass[t["typologie"]];
-        	var option = t["options"] ? ' handicap': '';
+        	var option = t["options"] ? true: false;
         	if (!test)
         		console.error(t);
         	else {
@@ -77,7 +79,8 @@ var toilettesP = getToilets('data/toilettes.json')
 	                lat: parseFloat(t["y_lat"]),
 	                nom: t["nom"],
 	                // typologie: t["typologie"],
-	                class: typologieToCSSClass[t["typologie"]] + option
+	                class: typologieToCSSClass[t["typologie"]],
+	                handicap: option
             	};
         	}
         })
@@ -94,22 +97,27 @@ Promise.all([toilettesP, position]).then(function(values){
 	toilettes.forEach(function(element){
 		// Calculate rough distance b/w user and toilet
 		element.d = Math.sqrt(Math.pow(element.lat - position.lat, 2) + Math.pow(element.lng - position.lng, 2));
-		// Add markers asap with an approximate color
-
-		var n = 0;
 		
+		// Add icons from FontAwesome
 		var myHtml = '<div class="icon-box">\n';
-		element.class.split(" ").forEach(function(string){
-			var myIcon = 'fa-' + iconMap[string] || '';
-			myHtml += '<i class="fa fa-fw fa-border ' + myIcon + '"></i>\n';
-			n++;
-		})
+
+		if (element.class == 'sanitaire') {
+			myHtml += '<i class="fa fa-female"></i><i class="fa fa-male"></i>\n';
+		}
+		else {
+			myHtml += '<i class="fa fa-male urinoir"></i>\n';
+		}
+		
+		if (element.handicap == true){
+			myHtml += '<div class="pins"><i class="fa fa-fw fa-wheelchair"></i></div>\n';
+		} 
+		
 		myHtml += '</div>';
 
 		var icon = L.divIcon({
 	        className: "icon",
-	        iconSize: new L.Point(35 * n, 30),
-		    iconAnchor: new L.Point(15 * n, 30),
+	        iconSize: new L.Point(46, 46),
+		    iconAnchor: new L.Point(23, 23),
 	        html: myHtml
 	    });
 
@@ -186,7 +194,7 @@ Promise.all([toilettesP, position]).then(function(values){
 			var infos = L.divIcon({
 		        className: ['infos', rank].join(' '),
 		        iconSize: new L.Point(70, 70),
-		        iconAnchor: new L.Point(35, 100),
+		        iconAnchor: new L.Point(35, 108),
 		        html: time + '<div class="subInfos">' + distance + ' m </div>'
 		    });
 			
