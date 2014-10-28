@@ -25,7 +25,13 @@ var typologieToCSSClass = {
 	"Sanitaire automatique": "sanitaire",
 	"Sanitaire automatique avec urinoir": "sanitaire urinoir",
 	"Chalet de nécessité": "chalet",
-	"Handicapé": "handicap"
+};
+
+var iconMap = {
+	"urinoir" : "male",
+	"sanitaire": "female",
+	"handicap": "wheelchair",
+	"chalet": "umbrella"
 };
 
 // Get user position
@@ -62,7 +68,7 @@ var toilettesP = getToilets('data/toilettes.json')
         
         return data["d"].map(function(t){
         	var test = typologieToCSSClass[t["typologie"]];
-        	var test_option = t["options"];
+        	var option = t["options"] ? ' handicap': '';
         	if (!test)
         		console.error(t);
         	else {
@@ -70,8 +76,8 @@ var toilettesP = getToilets('data/toilettes.json')
 	                lng: parseFloat(t["x_long"]),
 	                lat: parseFloat(t["y_lat"]),
 	                nom: t["nom"],
-	                typologie: t["typologie"],
-	                class: typologieToCSSClass[t["typologie"]] + " " + typologieToCSSClass[test_option],
+	                // typologie: t["typologie"],
+	                class: typologieToCSSClass[t["typologie"]] + option
             	};
         	}
         })
@@ -89,21 +95,21 @@ Promise.all([toilettesP, position]).then(function(values){
 		// Calculate rough distance b/w user and toilet
 		element.d = Math.sqrt(Math.pow(element.lat - position.lat, 2) + Math.pow(element.lng - position.lng, 2));
 		// Add markers asap with an approximate color
-		var iconMap = {"urinoir" : "male",
-						"sanitaire": "female",
-						"handicap": "wheelchair",
-						"chalet": "umbrella"};
-		var myHtml = '<ul class="fa-ul">\n';
-		element.class.split(" ").filter(function(e){return e != undefined}).forEach(function(string){
-			myHtml += '<li><i class="fa-li fa fa-' + iconMap[string] + ' "></i></li>\n';
+
+		var n = 0;
+		
+		var myHtml = '<div class="icon-box">\n';
+		element.class.split(" ").forEach(function(string){
+			var myIcon = 'fa-' + iconMap[string] || '';
+			myHtml += '<i class="fa fa-fw fa-border ' + myIcon + '"></i>\n';
+			n++;
 		})
-		myHtml += '</ul>'
-
-		console.log(element.class);
-
+		myHtml += '</div>';
 
 		var icon = L.divIcon({
 	        className: "icon",
+	        iconSize: new L.Point(35 * n, 30),
+		    iconAnchor: new L.Point(15 * n, 30),
 	        html: myHtml
 	    });
 
@@ -148,7 +154,7 @@ Promise.all([toilettesP, position]).then(function(values){
     // When all itineraries are computed
     Promise.all([promises[0], promises[1], promises[2]]).then(function(toilets){
 
-		console.log(toilets);
+		console.log('Les plus proches: ', toilets);
 		
 		toilets.sort(function (a, b) {
 			return (a.routes[0].legs[0].distance.value - b.routes[0].legs[0].distance.value);
