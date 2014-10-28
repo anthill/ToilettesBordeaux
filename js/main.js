@@ -131,8 +131,8 @@ Promise.all([toilettesP, position]).then(function(values){
 		return (a.d - b.d);
 	});
 
-	var tempLats = [],
-		tempLngs = [];
+	var tempLats = [position.lat],
+		tempLngs = [position.lng];
 
 	var promises = [];
 
