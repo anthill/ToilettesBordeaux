@@ -99,7 +99,7 @@ Promise.all([toilettesP, position]).then(function(values){
 		element.d = Math.sqrt(Math.pow(element.lat - position.lat, 2) + Math.pow(element.lng - position.lng, 2));
 		
 		// Add icons from FontAwesome
-		var myHtml = '<div class="icon-box">\n';
+		var myHtml = '';
 
 		if (element.class == 'sanitaire') {
 			myHtml += '<i class="fa fa-female"></i><i class="fa fa-male"></i>\n';
@@ -111,8 +111,6 @@ Promise.all([toilettesP, position]).then(function(values){
 		if (element.handicap == true){
 			myHtml += '<div class="pins"><i class="fa fa-fw fa-wheelchair"></i></div>\n';
 		} 
-		
-		myHtml += '</div>';
 
 		var icon = L.divIcon({
 	        className: "icon",
@@ -122,6 +120,7 @@ Promise.all([toilettesP, position]).then(function(values){
 	    });
 
 	    var marker = L.marker([element.lat, element.lng], {icon: icon});
+	    element.marker = marker;
 	    
 	    map.addLayer(marker);
 	});
@@ -143,7 +142,13 @@ Promise.all([toilettesP, position]).then(function(values){
 		tempLats.push(current.lat);
 		tempLngs.push(current.lng);
 
-		promises[i] = itinerary(position, toilettes[i]);
+		promises[i] = itinerary(position, toilettes[i])
+			.then(function(result){
+				return {
+					result: result,
+					toilet: toilettes[i]
+				}
+			});
 	}
 
 	// Fits the map so all 3 shortest routes are displayed
@@ -165,16 +170,18 @@ Promise.all([toilettesP, position]).then(function(values){
 		console.log('Les plus proches: ', toilets);
 		
 		toilets.sort(function (a, b) {
-			return (a.routes[0].legs[0].distance.value - b.routes[0].legs[0].distance.value);
+			return (a.result.routes[0].legs[0].distance.value - b.result.routes[0].legs[0].distance.value);
 		})
 
 		// Calculate itineraries for 3 closest toilets
 		for (var i = 0; i < 3; i++){
-			var result = toilets[i];
+			var result = toilets[i].result;
 			var rank = '';
+			var color = '#000000';
 
 			if (i == 0){
 				rank += 'first';
+				color = '#008200';
 			}
 			
 			// Get route points
@@ -205,12 +212,11 @@ Promise.all([toilettesP, position]).then(function(values){
 		    // Draw route
 			var polyline = L.polyline(routeLatLng, {
 				className: ['route', rank].join(' '),
-				color: '#008200',
+				color: color,
 				smoothFactor: 3.0,
             	noClip: true,
             	opacity: 1
 			}).addTo(map);
-
 		}
 
 	}).catch(function(err){console.error(err)})

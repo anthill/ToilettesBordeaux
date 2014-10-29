@@ -88,18 +88,18 @@
             position: absolute;
             top: 7px;
             left: 3px;
-            color: pink;
+            color: white;
         }
 
         .fa-male {
             position: absolute;
             top: 7px;
             right: 3px;
-            color: blue;
+            color: white;
         }
 
         .fa-male.urinoir {
-            left: 14px;
+            left: 15px;
         }
 
         .fa-wheelchair {
@@ -117,14 +117,10 @@
             color: white;
         }
 
-        .icon-box {
-            position: relative;
-            width: 46px;
-            height: 46px;
+        .icon {
             font-size: 2.5em;
-            border: 1px solid black;
-            background-color: white;
-            border-radius: 10%;
+            background-color: rgba(0, 0, 0, 0.75);
+            border-radius: 30%;
         }
 
         .icon.user{
@@ -174,7 +170,11 @@
         }
 
         .infos.first{
-            background: linear-gradient( rgba(0, 82, 0, 0.6), #2C2C2C);
+            background: linear-gradient( rgba(0, 82, 0, 0.6), rgb(0, 82, 0));
+        }
+
+        .infos.first:after{
+            border-top-color: rgb(0, 82, 0);
         }
 
         .subInfos{
@@ -183,10 +183,12 @@
         }
 
         .route{
+            /*color: #000000;*/
             opacity: 0.5;
         }
 
         .route.first{
+            /*color: #008200;*/
             opacity: 1;
         }
 
