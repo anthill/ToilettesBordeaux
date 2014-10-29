@@ -74,32 +74,24 @@ var toilettesP = getToilets('data/toilettes.json')
 	                class: typologieToCSSClass[t["typologie"]] + " " + typologieToCSSClass[test_option],
             	};
         	}
-        })
+        });
     });
 
-// When user and toilet positions are available:
-Promise.all([toilettesP, position]).then(function(values){
-
-	var toilettes = values[0],
-		position = values[1];
-
-	var distance = 100000;
-
-	toilettes.forEach(function(element){
-		// Calculate rough distance b/w user and toilet
-		element.d = Math.sqrt(Math.pow(element.lat - position.lat, 2) + Math.pow(element.lng - position.lng, 2));
-		// Add markers asap with an approximate color
-		var iconMap = {"urinoir" : "male",
-						"sanitaire": "female",
-						"handicap": "wheelchair",
-						"chalet": "umbrella"};
+// render points on map regardless of geolocation
+toilettesP.then(function(toilettes){
+    toilettes.forEach(function(element){
+        var iconMap = {
+            "urinoir" : "male",
+            "sanitaire": "female",
+            "handicap": "wheelchair",
+            "chalet": "umbrella"
+        };
+        
 		var myHtml = '<ul class="fa-ul">\n';
 		element.class.split(" ").filter(function(e){return e != undefined}).forEach(function(string){
 			myHtml += '<li><i class="fa-li fa fa-' + iconMap[string] + ' "></i></li>\n';
 		})
-		myHtml += '</ul>'
-
-		console.log(element.class);
+		myHtml += '</ul>';
 
 
 		var icon = L.divIcon({
@@ -111,11 +103,24 @@ Promise.all([toilettesP, position]).then(function(values){
 	    
 	    map.addLayer(marker);
 	});
+});
 
-	// Sort toilets by rough distance
+
+// When user and toilet positions are available:
+Promise.all([toilettesP, position]).then(function(values){
+
+	var toilettes = values[0],
+		position = values[1];
+
+	toilettes.forEach(function(toilette){
+        // Calculate rough distance b/w user and toilet
+        toilette.d = Math.hypot(toilette.lat - position.lat, toilette.lng - position.lng);
+    });
+    
 	toilettes.sort(function (a, b) {
 		return (a.d - b.d);
 	});
+
 
 	var tempLats = [],
 		tempLngs = [];

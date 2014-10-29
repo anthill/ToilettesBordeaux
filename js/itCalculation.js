@@ -1,12 +1,11 @@
 'use strict'
 
-var directionsService = new google.maps.DirectionsService();
-
 function serializeLatLng(ll) {
 	return '{latitude: ' + ll.lat() + ', longitude: ' + ll.lng() + '}';
 }
 
 function calcRoute(startLocation, endLocation) {    
+    var directionsService = new google.maps.DirectionsService();
     var mode = google.maps.DirectionsTravelMode.WALKING;
 
     var request = {
