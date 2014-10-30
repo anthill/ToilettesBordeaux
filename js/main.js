@@ -104,7 +104,6 @@ var toilettesP = getToilets('data/toilettes.json')
         });
     });
 
-
 // render points on map regardless of geolocation
 toilettesP.then(function(toilettes){
     toilettes.forEach(function(element){
@@ -133,23 +132,6 @@ toilettesP.then(function(toilettes){
 	    var marker = L.marker([element.lat, element.lng], {icon: icon});
 	    element.marker = marker;
 
-	    // Add click event on toilet
-	    marker.addEventListener('click', function(){
-	    	map.removeLayer(drawables.closestGroup);
-	    	drawables.singleGroup.clearLayers();
-
-			itinerary(position, element)
-				.then(function(result){
-					var infos = addInfos(result, 1);
-
-					infos.polyline.addTo(drawables.singleGroup);
-					infos.marker.addTo(drawables.singleGroup);
-					
-					drawables.singleGroup.addTo(map);
-
-				}).catch(function(err){console.error(err)})
-		});
-
 	    marker.addTo(drawables.toiletGroup);
 	    
 	});
@@ -167,18 +149,35 @@ Promise.all([toilettesP, position]).then(function(values){
 	toilettes.forEach(function(toilette){
         // Calculate rough distance b/w user and toilet
         toilette.d = Math.hypot(toilette.lat - position.lat, toilette.lng - position.lng);
+
+        // Add click event on toilet
+	    toilette.marker.addEventListener('click', function(){
+	    	map.removeLayer(drawables.closestGroup);
+	    	drawables.singleGroup.clearLayers();
+
+			itinerary(position, toilette)
+				.then(function(result){
+					var infos = addInfos(result, 1);
+
+					infos.polyline.addTo(drawables.singleGroup);
+					infos.marker.addTo(drawables.singleGroup);
+					
+					drawables.singleGroup.addTo(map);
+
+				}).catch(function(err){console.error(err)})
+		});
     });
     
 	toilettes.sort(function (a, b) {
 		return (a.d - b.d);
 	});
 
-    var closestToillettes = toilettes.slice(0, 3);
+    var closestToilettes = toilettes.slice(0, 3);
     
-	var closestLats = closestToillettes.map(function(t){return t.lat;}),
-		closestLngs = closestToillettes.map(function(t){return t.lng;});
+	var closestLats = closestToilettes.map(function(t){return t.lat;}),
+		closestLngs = closestToilettes.map(function(t){return t.lng;});
 
-	var itinerariesPs = closestToillettes.map(function(t){ return itinerary(position, t); });
+	var itinerariesPs = closestToilettes.map(function(t){ return itinerary(position, t); });
 
 	// Fits the map so all shortest routes are displayed
 	var north = U.getMaxOfArray(closestLats),
