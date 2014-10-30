@@ -1,8 +1,7 @@
 'use strict'
 
-var directionsService = new google.maps.DirectionsService();
-
 function calcRoute(startLocation, endLocation) {    
+    var directionsService = new google.maps.DirectionsService();
     var mode = google.maps.DirectionsTravelMode.WALKING;
 
     var request = {
