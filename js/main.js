@@ -139,21 +139,15 @@ toilettesP.then(function(toilettes){
 	    	drawables.singleGroup.clearLayers();
 
 			itinerary(position, element)
-			.then(function(result){
-				return {
-					result: result,
-					toilet: element
-				}
-			})
-			.then(function(result){
-				var infos = addInfos(result, 1);
+				.then(function(result){
+					var infos = addInfos(result, 1);
 
-				infos.polyline.addTo(drawables.singleGroup);
-				infos.marker.addTo(drawables.singleGroup);
-				
-				drawables.singleGroup.addTo(map);
+					infos.polyline.addTo(drawables.singleGroup);
+					infos.marker.addTo(drawables.singleGroup);
+					
+					drawables.singleGroup.addTo(map);
 
-			}).catch(function(err){console.error(err)})
+				}).catch(function(err){console.error(err)})
 		});
 
 	    marker.addTo(drawables.toiletGroup);
@@ -206,56 +200,15 @@ Promise.all([toilettesP, position]).then(function(values){
 		});
 
 		// Calculate itineraries for 3 closest toilets
-		toilets.forEach(function(result, i){
-        
-			var rank = '';
+		toilets.forEach(function(toilet, i){
 
-			if (i === 0){
-				rank += 'first';
-			}
-			
-			// Get route points
-			var destination = L.latLng(result.mc.destination.k, result.mc.destination.B);
-			var route = result.routes[0];
-			var path = route.overview_path;
-			var routeLatLng = [];
-			for (var j = 0; j < path.length; j++)
-				routeLatLng[j] = {lat: path[j].k, lng: path[j].B};
+			console.log('toilet ', toilet);
 
-			// Create and add infos on the route
-			var minutes = Math.floor(route.legs[0].duration.value / 60);
-			var secondes = route.legs[0].duration.value % 60;
-			var time = minutes + "' "  + secondes + "\" ";
-			var distance = route.legs[0].distance.value;
-
-			var infos = L.divIcon({
-		        className: ['infos', rank].join(' '),
-		        iconSize: new L.Point(70, 70),
-		        iconAnchor: new L.Point(35, 100),
-		        html: time + '<div class="subInfos">' + distance + ' m </div>'
-		    });
-			
-		    var marker = L.marker(destination, {icon: infos});
-		    
-		    map.addLayer(marker);
-
-		    // Draw route
-			var polyline = L.polyline(routeLatLng, {
-				className: ['route', rank].join(' '),
-				color: '#008200',
-				smoothFactor: 3.0,
-            	noClip: true,
-            	opacity: 1
-			}).addTo(map);
-
-        });
-
-		for (var i = 2; i >= 0; i--){ // Downwards to get shortest route on top
-			var infos = addInfos(toilets[i], i);
+			var infos = addInfos(toilet, i);
 			infos.polyline.addTo(drawables.closestGroup);
 			infos.marker.addTo(drawables.closestGroup);
-		}
 
+        });
 
 		// Draw infos on closest toilets
 		drawables.closestGroup.addTo(map);
