@@ -121,27 +121,18 @@ Promise.all([toilettesP, position]).then(function(values){
 		return (a.d - b.d);
 	});
 
+    var closestToillettes = toilettes.slice(0, 3);
+    
+	var closestLats = closestToillettes.map(function(t){return t.lat;}),
+		closestLngs = closestToillettes.map(function(t){return t.lng;});
 
-	var tempLats = [],
-		tempLngs = [];
+	var itinerariesPs = closestToillettes.map(function(t){ return itinerary(position, t); });
 
-	var promises = [];
-
-	// Calculate itineraries for 3 closest toilets
-	for (var i = 0; i < 3; i++){
-		var current = L.latLng(toilettes[i].lat, toilettes[i].lng);
-		
-		tempLats.push(current.lat);
-		tempLngs.push(current.lng);
-
-		promises[i] = itinerary(position, toilettes[i]);
-	}
-
-	// Fits the map so all 3 shortest routes are displayed
-	var north = U.getMaxOfArray(tempLats),
-		south = U.getMinOfArray(tempLats),
-		east = U.getMaxOfArray(tempLngs),
-		west = U.getMinOfArray(tempLngs);
+	// Fits the map so all shortest routes are displayed
+	var north = U.getMaxOfArray(closestLats),
+		south = U.getMinOfArray(closestLats),
+		east = U.getMaxOfArray(closestLngs),
+		west = U.getMinOfArray(closestLngs);
 
 	var southWest = L.latLng(south, west),
     	northEast = L.latLng(north, east);
@@ -151,7 +142,7 @@ Promise.all([toilettesP, position]).then(function(values){
 
 
     // When all itineraries are computed
-    Promise.all([promises[0], promises[1], promises[2]]).then(function(toilets){
+    Promise.all(itinerariesPs).then(function(toilets){
 
 		console.log(toilets);
 		
@@ -160,11 +151,11 @@ Promise.all([toilettesP, position]).then(function(values){
 		})
 
 		// Calculate itineraries for 3 closest toilets
-		for (var i = 0; i < 3; i++){
-			var result = toilets[i];
+		toilets.forEach(function(result, i){
+        
 			var rank = '';
 
-			if (i == 0){
+			if (i === 0){
 				rank += 'first';
 			}
 			
@@ -202,7 +193,7 @@ Promise.all([toilettesP, position]).then(function(values){
             	opacity: 1
 			}).addTo(map);
 
-		}
+        });
 
 	}).catch(function(err){console.error(err)})
 
