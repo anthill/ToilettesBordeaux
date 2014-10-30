@@ -78,119 +78,144 @@
 
         <style>
 
-        #map{
-            height: 100vh;
-            width: 100vw;
-        }
-        
-        .icon{
-            /*width: 2em;
-            height: 2em;*/
-            /*background-color: white;*/
-            /*border-radius: 50%;*/
+            #map{
+                height: 100vh;
+                width: 100vw;
+            }
 
-        }
 
-        .icon.urinoir{
-            background-color: yellow;
-        }
+            .fa-female {
+                position: absolute;
+                top: 8px;
+                left: 3px;
+                color: white;
+            }
 
-        .icon.sanitaire{
-            background-color: blue;
-        }
+            .fa-male {
+                position: absolute;
+                top: 8px;
+                right: 3px;
+                color: white;
+            }
 
-        .icon.chalet{
-            background-color: red;
-        }
+            .fa-male.urinoir {
+                left: 15px;
+            }
 
-        .icon.sanitaire.urinoir{
-            background-color: green;
-        }
+            .fa-wheelchair {
+                color: white;
+                position: absolute;
+                left: 3px;
+                top: 3px;
+            }
 
-        .icon.handicap{
-            border: 3px black solid;
-        }
-        .fa {
-            color: red;
-        }
+            .fa-bullseye{
+                color: green;
+            }
 
-        .fa-ul {
-            list-style-type: none;
-        }
-        .fa-ul li {
-            display: inline-block;
-        }
+            .fa-circle {
+                color: white;
+            }
 
-        .icon.user{
-            background-color: red;
-        }
+            .icon {
+                font-size: 2.5em;
+                background-color: rgba(0, 0, 0, 0.75);
+                border-radius: 30%;
+            }
 
-        .infos{
-            width:auto;
-            padding:8px 0;
-            text-align:center;
-            display: inline-block;
-            float:left;
-            margin:0 8px 0 0;
-            font-size: 2em;
-            width:120px;
-            color:white;
-            font-family: Arial,sans-serif;
-            border-radius: 10%;
-            background: linear-gradient( rgba(85, 85, 85, 0.6), #2C2C2C);
-            position: relative;
-        }
+            .icon.user{
+                background-color: red;
+            }
 
-        .infos:after {
-            top: 100%;
-            left: 50%;
-            border: solid transparent;
-            content: " ";
-            height: 0;
-            width: 0;
-            position: absolute;
-            pointer-events: none;
-            border-top-color: #2C2C2C;
-            border-width: 15px;
-            margin-left: -15px;
-        }
+            .pins {
+                width: 20px;
+                height: 20px;
+                font-size: 0.43em;
+                font-weight: bold;
+                background-color: blue;
+                border-radius: 50%;
+                position: absolute;
+                top: -10px;
+                right: -10px;
+            }
 
-        .infos.first{
-            background: linear-gradient( rgba(0, 82, 0, 0.6), #2C2C2C);
-        }
+            .infos{
+                width:auto;
+                padding:8px 0;
+                text-align:center;
+                display: inline-block;
+                float:left;
+                margin:0 8px 0 0;
+                font-size: 2em;
+                width:120px;
+                color:white;
+                font-family: Arial,sans-serif;
+                border-radius: 10%;
+                background: linear-gradient( rgba(85, 85, 85, 0.6), #2C2C2C);
+                position: relative;
+            }
 
-        .subInfos{
-            font-size: 0.6em;
-            font-style: italic;
-        }
+            .infos:after {
+                top: 100%;
+                left: 50%;
+                border: solid transparent;
+                content: " ";
+                height: 0;
+                width: 0;
+                position: absolute;
+                pointer-events: none;
+                border-top-color: #2C2C2C;
+                border-width: 15px;
+                margin-left: -15px;
+            }
 
-        .route{
-            opacity: 0.5;
-        }
+            .infos.first{
+                background: linear-gradient( rgba(0, 82, 0, 0.6), rgb(0, 82, 0));
+            }
 
-        .route.first{
-            opacity: 1;
-        }
+            .infos.first:after{
+                border-top-color: rgb(0, 82, 0);
+            }
+
+            .subInfos{
+                font-size: 0.6em;
+                font-style: italic;
+            }
+
+            .route{
+                /*color: #000000;*/
+                opacity: 0.5;
+            }
+
+            .route.first{
+                /*color: #008200;*/
+                opacity: 1;
+            }
 
         </style>
 
         <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
 
         <script>
-            if(!Math.hypot){
-                Math.hypot = function(x, y){
-                    if(arguments.length !== 2)
-                        throw new Error('get better polyfill from MDN');
-                    
-                    return Math.sqrt(x*x + y*y);
-                }
+            if (!Math.hypot) {
+                Math.hypot = function hypot() {
+                    var y = 0;
+                    var length = arguments.length;
+
+                    for (var i = 0; i < length; i++) {
+                        if(arguments[i] === Infinity || arguments[i] === -Infinity) {
+                            return Infinity;
+                        }
+                        y += arguments[i] * arguments[i];
+                    }
+                    return Math.sqrt(y);
+                };
             }
-        
         </script>
-        
+
         <script defer src="app.js"></script>
         <script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script>
-        
+
         <title> Toilettes Bordeaux </title>
     </head>
 

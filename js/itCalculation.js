@@ -1,9 +1,5 @@
 'use strict'
 
-function serializeLatLng(ll) {
-	return '{latitude: ' + ll.lat() + ', longitude: ' + ll.lng() + '}';
-}
-
 function calcRoute(startLocation, endLocation) {    
     var directionsService = new google.maps.DirectionsService();
     var mode = google.maps.DirectionsTravelMode.WALKING;
@@ -33,5 +29,11 @@ module.exports = function(start, end) {
 	var startLocation = new google.maps.LatLng(start.lat,start.lng);
 	var endLocation = new google.maps.LatLng(end.lat,end.lng);
 
-	return calcRoute(startLocation, endLocation);
+	var route = calcRoute(startLocation, endLocation);
+
+	return route;
+	// return {
+	// 	result: route,
+	// 	toilet: end
+	// };
 };

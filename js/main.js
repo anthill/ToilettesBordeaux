@@ -4,6 +4,7 @@ var L = require('leaflet');
 var geo = require('./geolocation.js');
 var itinerary = require('./itCalculation.js');
 var getToilets = require('./getToilets.js');
+var addInfos = require('./addInfos.js');
 var U = require('./utilities.js');
 
 // set map options
@@ -23,10 +24,26 @@ L.tileLayer('http://api.tiles.mapbox.com/v3/ourson.k0i572pc/{z}/{x}/{y}.png', {
 var typologieToCSSClass = {
 	"Urinoir": "urinoir",
 	"Sanitaire automatique": "sanitaire",
-	"Sanitaire automatique avec urinoir": "sanitaire urinoir",
-	"Chalet de nécessité": "chalet",
-	"Handicapé": "handicap"
+	"Sanitaire automatique avec urinoir": "sanitaire",
+	"Chalet de nécessité": "sanitaire",
 };
+
+var iconMap = {
+	"urinoir" : "male",
+	"sanitaire": "female",
+	"handicap": "wheelchair",
+	"chalet": "umbrella"
+};
+
+var drawables = {
+	singleGroup: L.layerGroup(),
+	closestGroup: L.layerGroup(),
+	urinoirGroup: L.layerGroup(),
+	sanitaireGroup: L.layerGroup(),
+	handiGroup: L.layerGroup(),
+	toiletGroup: L.layerGroup()
+};
+
 
 // Get user position
 function updatePosition(position){
@@ -35,7 +52,9 @@ function updatePosition(position){
 
 	var icon = L.divIcon({
 	        className: "user",
-	        html: '<i class="fa fa-bullseye fa-2x"></i>'
+	        iconSize: new L.Point(72, 72),
+		    iconAnchor: new L.Point(36, 36),
+	        html: '<span class="fa-stack fa-lg fa-3x"><i class="fa fa-circle fa-stack-1x"></i><i class="fa fa-bullseye fa-stack-1x"></i></span>'
 	    });
 
 	var marker;
@@ -44,13 +63,20 @@ function updatePosition(position){
 		map.removeLayer(marker);
 
 	marker = L.marker([latitude, longitude], {icon: icon});
+	drawables.user = marker;
+
+	// Add click event on user position
+	marker.addEventListener('click', function(){
+	    drawables.singleGroup.clearLayers();
+	    drawables.closestGroup.addTo(map);
+	});
+
 	map.addLayer(marker);
-	map.center = L.latLng(latitude, longitude);
 
 	return {
 		lat: latitude,
 		lng: longitude
-	}
+	};
 }
 
 var position = geo(updatePosition);
@@ -62,7 +88,7 @@ var toilettesP = getToilets('data/toilettes.json')
         
         return data["d"].map(function(t){
         	var test = typologieToCSSClass[t["typologie"]];
-        	var test_option = t["options"];
+        	var option = t["options"] ? true: false;
         	if (!test)
         		console.error(t);
         	else {
@@ -70,39 +96,71 @@ var toilettesP = getToilets('data/toilettes.json')
 	                lng: parseFloat(t["x_long"]),
 	                lat: parseFloat(t["y_lat"]),
 	                nom: t["nom"],
-	                typologie: t["typologie"],
-	                class: typologieToCSSClass[t["typologie"]] + " " + typologieToCSSClass[test_option],
+	                // typologie: t["typologie"],
+	                class: typologieToCSSClass[t["typologie"]],
+	                handicap: option
             	};
         	}
         });
     });
 
+
 // render points on map regardless of geolocation
 toilettesP.then(function(toilettes){
     toilettes.forEach(function(element){
-        var iconMap = {
-            "urinoir" : "male",
-            "sanitaire": "female",
-            "handicap": "wheelchair",
-            "chalet": "umbrella"
-        };
         
-		var myHtml = '<ul class="fa-ul">\n';
-		element.class.split(" ").filter(function(e){return e != undefined}).forEach(function(string){
-			myHtml += '<li><i class="fa-li fa fa-' + iconMap[string] + ' "></i></li>\n';
-		})
-		myHtml += '</ul>';
+		// Add icons from FontAwesome
+		var myHtml = '';
 
+		if (element.class == 'sanitaire') {
+			myHtml += '<i class="fa fa-female"></i><i class="fa fa-male"></i>\n';
+		}
+		else {
+			myHtml += '<i class="fa fa-male urinoir"></i>\n';
+		}
+		
+		if (element.handicap == true){
+			myHtml += '<div class="pins"><i class="fa fa-fw fa-wheelchair"></i></div>\n';
+		} 
 
 		var icon = L.divIcon({
 	        className: "icon",
+	        iconSize: new L.Point(46, 46),
+		    iconAnchor: new L.Point(23, 23),
 	        html: myHtml
 	    });
 
 	    var marker = L.marker([element.lat, element.lng], {icon: icon});
+	    element.marker = marker;
+
+	    // Add click event on toilet
+	    marker.addEventListener('click', function(){
+	    	map.removeLayer(drawables.closestGroup);
+	    	drawables.singleGroup.clearLayers();
+
+			itinerary(position, element)
+			.then(function(result){
+				return {
+					result: result,
+					toilet: element
+				}
+			})
+			.then(function(result){
+				var infos = addInfos(result, 1);
+
+				infos.polyline.addTo(drawables.singleGroup);
+				infos.marker.addTo(drawables.singleGroup);
+				
+				drawables.singleGroup.addTo(map);
+
+			}).catch(function(err){console.error(err)})
+		});
+
+	    marker.addTo(drawables.toiletGroup);
 	    
-	    map.addLayer(marker);
 	});
+    
+    drawables.toiletGroup.addTo(map);
 });
 
 
@@ -140,15 +198,12 @@ Promise.all([toilettesP, position]).then(function(values){
     var bounds = L.latLngBounds(southWest, northEast);
     map.fitBounds(bounds);
 
-
     // When all itineraries are computed
     Promise.all(itinerariesPs).then(function(toilets){
 
-		console.log(toilets);
-		
 		toilets.sort(function (a, b) {
 			return (a.routes[0].legs[0].distance.value - b.routes[0].legs[0].distance.value);
-		})
+		});
 
 		// Calculate itineraries for 3 closest toilets
 		toilets.forEach(function(result, i){
@@ -195,7 +250,21 @@ Promise.all([toilettesP, position]).then(function(values){
 
         });
 
+		for (var i = 2; i >= 0; i--){ // Downwards to get shortest route on top
+			var infos = addInfos(toilets[i], i);
+			infos.polyline.addTo(drawables.closestGroup);
+			infos.marker.addTo(drawables.closestGroup);
+		}
+
+
+		// Draw infos on closest toilets
+		drawables.closestGroup.addTo(map);
+		
+
 	}).catch(function(err){console.error(err)})
+
+	// Draw all toilets
+	drawables.toiletGroup.addTo(map);
 
 }).catch(function(err){console.error(err)})
 
