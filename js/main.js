@@ -4,6 +4,7 @@ var L = require('leaflet');
 var geo = require('./geolocation.js');
 var itinerary = require('./itCalculation.js');
 var getToilets = require('./getToilets.js');
+var addInfos = require('./addInfos.js');
 var U = require('./utilities.js');
 
 // set map options
@@ -34,6 +35,16 @@ var iconMap = {
 	"chalet": "umbrella"
 };
 
+var drawables = {
+	singleGroup: L.layerGroup(),
+	closestGroup: L.layerGroup(),
+	urinoirGroup: L.layerGroup(),
+	sanitaireGroup: L.layerGroup(),
+	handiGroup: L.layerGroup(),
+	toiletGroup: L.layerGroup()
+};
+
+
 // Get user position
 function updatePosition(position){
  	var latitude  = position.coords.latitude;
@@ -52,8 +63,15 @@ function updatePosition(position){
 		map.removeLayer(marker);
 
 	marker = L.marker([latitude, longitude], {icon: icon});
+	drawables.user = marker;
+
+	// Add click event on user position
+	marker.addEventListener('click', function(){
+	    drawables.singleGroup.clearLayers();
+	    drawables.closestGroup.addTo(map);
+	});
+
 	map.addLayer(marker);
-	map.center = L.latLng(latitude, longitude);
 
 	return {
 		lat: latitude,
@@ -121,8 +139,31 @@ Promise.all([toilettesP, position]).then(function(values){
 
 	    var marker = L.marker([element.lat, element.lng], {icon: icon});
 	    element.marker = marker;
-	    
-	    map.addLayer(marker);
+
+	    // Add click event on toilet
+	    marker.addEventListener('click', function(){
+	    	map.removeLayer(drawables.closestGroup);
+	    	drawables.singleGroup.clearLayers();
+
+			itinerary(position, element)
+			.then(function(result){
+				return {
+					result: result,
+					toilet: element
+				}
+			})
+			.then(function(result){
+				var infos = addInfos(result, 1);
+
+				infos.polyline.addTo(drawables.singleGroup);
+				infos.marker.addTo(drawables.singleGroup);
+				
+				drawables.singleGroup.addTo(map);
+
+			}).catch(function(err){console.error(err)})
+		});
+
+	    marker.addTo(drawables.toiletGroup);
 	});
 
 	// Sort toilets by rough distance
@@ -163,63 +204,27 @@ Promise.all([toilettesP, position]).then(function(values){
     var bounds = L.latLngBounds(southWest, northEast);
     map.fitBounds(bounds);
 
-
     // When all itineraries are computed
-    Promise.all([promises[0], promises[1], promises[2]]).then(function(toilets){
+	var closeElements = Promise.all([promises[0], promises[1], promises[2]]).then(function(toilets){
 
-		console.log('Les plus proches: ', toilets);
-		
 		toilets.sort(function (a, b) {
 			return (a.result.routes[0].legs[0].distance.value - b.result.routes[0].legs[0].distance.value);
 		})
 
-		// Calculate itineraries for 3 closest toilets
-		for (var i = 0; i < 3; i++){
-			var result = toilets[i].result;
-			var rank = '';
-			var color = '#000000';
-
-			if (i == 0){
-				rank += 'first';
-				color = '#008200';
-			}
-			
-			// Get route points
-			var destination = L.latLng(result.mc.destination.k, result.mc.destination.B);
-			var route = result.routes[0];
-			var path = route.overview_path;
-			var routeLatLng = [];
-			for (var j = 0; j < path.length; j++)
-				routeLatLng[j] = {lat: path[j].k, lng: path[j].B};
-
-			// Create and add infos on the route
-			var minutes = Math.floor(route.legs[0].duration.value / 60);
-			var secondes = route.legs[0].duration.value % 60;
-			var time = minutes + "' "  + secondes + "\" ";
-			var distance = route.legs[0].distance.value;
-
-			var infos = L.divIcon({
-		        className: ['infos', rank].join(' '),
-		        iconSize: new L.Point(70, 70),
-		        iconAnchor: new L.Point(35, 108),
-		        html: time + '<div class="subInfos">' + distance + ' m </div>'
-		    });
-			
-		    var marker = L.marker(destination, {icon: infos});
-		    
-		    map.addLayer(marker);
-
-		    // Draw route
-			var polyline = L.polyline(routeLatLng, {
-				className: ['route', rank].join(' '),
-				color: color,
-				smoothFactor: 3.0,
-            	noClip: true,
-            	opacity: 1
-			}).addTo(map);
+		for (var i = 2; i >= 0; i--){ // Downwards to get shortest route on top
+			var infos = addInfos(toilets[i], i);
+			infos.polyline.addTo(drawables.closestGroup);
+			infos.marker.addTo(drawables.closestGroup);
 		}
 
+		// Draw infos on closest toilets
+		drawables.closestGroup.addTo(map);
+		
+
 	}).catch(function(err){console.error(err)})
+
+	// Draw all toilets
+	drawables.toiletGroup.addTo(map);
 
 }).catch(function(err){console.error(err)})
 
