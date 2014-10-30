@@ -83,46 +83,60 @@
             width: 100vw;
         }
         
-        .icon{
-            /*width: 2em;
-            height: 2em;*/
-            /*background-color: white;*/
-            /*border-radius: 50%;*/
 
-        }
-
-        .icon.urinoir{
-            background-color: yellow;
+        .fa-female {
+            position: absolute;
+            top: 8px;
+            left: 3px;
+            color: white;
         }
 
-        .icon.sanitaire{
-            background-color: blue;
+        .fa-male {
+            position: absolute;
+            top: 8px;
+            right: 3px;
+            color: white;
         }
 
-        .icon.chalet{
-            background-color: red;
+        .fa-male.urinoir {
+            left: 15px;
         }
 
-        .icon.sanitaire.urinoir{
-            background-color: green;
+        .fa-wheelchair {
+            color: white;
+            position: absolute;
+            left: 3px;
+            top: 3px;
         }
 
-        .icon.handicap{
-            border: 3px black solid;
-        }
-        .fa {
-            color: red;
+        .fa-bullseye{
+            color: green;
         }
 
-        .fa-ul {
-            list-style-type: none;
+        .fa-circle {
+            color: white;
         }
-        .fa-ul li {
-            display: inline-block;
+
+        .icon {
+            font-size: 2.5em;
+            background-color: rgba(0, 0, 0, 0.75);
+            border-radius: 30%;
         }
 
         .icon.user{
             background-color: red;
+        }
+
+        .pins {
+            width: 20px;
+            height: 20px;
+            font-size: 0.43em;
+            font-weight: bold;
+            background-color: blue;
+            border-radius: 50%;
+            position: absolute;
+            top: -10px;
+            right: -10px;
         }
 
         .infos{
@@ -156,7 +170,11 @@
         }
 
         .infos.first{
-            background: linear-gradient( rgba(0, 82, 0, 0.6), #2C2C2C);
+            background: linear-gradient( rgba(0, 82, 0, 0.6), rgb(0, 82, 0));
+        }
+
+        .infos.first:after{
+            border-top-color: rgb(0, 82, 0);
         }
 
         .subInfos{
@@ -165,10 +183,12 @@
         }
 
         .route{
+            /*color: #000000;*/
             opacity: 0.5;
         }
 
         .route.first{
+            /*color: #008200;*/
             opacity: 1;
         }
 

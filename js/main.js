@@ -23,9 +23,15 @@ L.tileLayer('http://api.tiles.mapbox.com/v3/ourson.k0i572pc/{z}/{x}/{y}.png', {
 var typologieToCSSClass = {
 	"Urinoir": "urinoir",
 	"Sanitaire automatique": "sanitaire",
-	"Sanitaire automatique avec urinoir": "sanitaire urinoir",
-	"Chalet de nécessité": "chalet",
-	"Handicapé": "handicap"
+	"Sanitaire automatique avec urinoir": "sanitaire",
+	"Chalet de nécessité": "sanitaire",
+};
+
+var iconMap = {
+	"urinoir" : "male",
+	"sanitaire": "female",
+	"handicap": "wheelchair",
+	"chalet": "umbrella"
 };
 
 // Get user position
@@ -35,7 +41,9 @@ function updatePosition(position){
 
 	var icon = L.divIcon({
 	        className: "user",
-	        html: '<i class="fa fa-bullseye fa-2x"></i>'
+	        iconSize: new L.Point(72, 72),
+		    iconAnchor: new L.Point(36, 36),
+	        html: '<span class="fa-stack fa-lg fa-3x"><i class="fa fa-circle fa-stack-1x"></i><i class="fa fa-bullseye fa-stack-1x"></i></span>'
 	    });
 
 	var marker;
@@ -62,7 +70,7 @@ var toilettesP = getToilets('data/toilettes.json')
         
         return data["d"].map(function(t){
         	var test = typologieToCSSClass[t["typologie"]];
-        	var test_option = t["options"];
+        	var option = t["options"] ? true: false;
         	if (!test)
         		console.error(t);
         	else {
@@ -70,8 +78,9 @@ var toilettesP = getToilets('data/toilettes.json')
 	                lng: parseFloat(t["x_long"]),
 	                lat: parseFloat(t["y_lat"]),
 	                nom: t["nom"],
-	                typologie: t["typologie"],
-	                class: typologieToCSSClass[t["typologie"]] + " " + typologieToCSSClass[test_option],
+	                // typologie: t["typologie"],
+	                class: typologieToCSSClass[t["typologie"]],
+	                handicap: option
             	};
         	}
         })
@@ -88,26 +97,30 @@ Promise.all([toilettesP, position]).then(function(values){
 	toilettes.forEach(function(element){
 		// Calculate rough distance b/w user and toilet
 		element.d = Math.sqrt(Math.pow(element.lat - position.lat, 2) + Math.pow(element.lng - position.lng, 2));
-		// Add markers asap with an approximate color
-		var iconMap = {"urinoir" : "male",
-						"sanitaire": "female",
-						"handicap": "wheelchair",
-						"chalet": "umbrella"};
-		var myHtml = '<ul class="fa-ul">\n';
-		element.class.split(" ").filter(function(e){return e != undefined}).forEach(function(string){
-			myHtml += '<li><i class="fa-li fa fa-' + iconMap[string] + ' "></i></li>\n';
-		})
-		myHtml += '</ul>'
+		
+		// Add icons from FontAwesome
+		var myHtml = '';
 
-		console.log(element.class);
-
+		if (element.class == 'sanitaire') {
+			myHtml += '<i class="fa fa-female"></i><i class="fa fa-male"></i>\n';
+		}
+		else {
+			myHtml += '<i class="fa fa-male urinoir"></i>\n';
+		}
+		
+		if (element.handicap == true){
+			myHtml += '<div class="pins"><i class="fa fa-fw fa-wheelchair"></i></div>\n';
+		} 
 
 		var icon = L.divIcon({
 	        className: "icon",
+	        iconSize: new L.Point(46, 46),
+		    iconAnchor: new L.Point(23, 23),
 	        html: myHtml
 	    });
 
 	    var marker = L.marker([element.lat, element.lng], {icon: icon});
+	    element.marker = marker;
 	    
 	    map.addLayer(marker);
 	});
@@ -117,8 +130,8 @@ Promise.all([toilettesP, position]).then(function(values){
 		return (a.d - b.d);
 	});
 
-	var tempLats = [],
-		tempLngs = [];
+	var tempLats = [position.lat],
+		tempLngs = [position.lng];
 
 	var promises = [];
 
@@ -129,7 +142,13 @@ Promise.all([toilettesP, position]).then(function(values){
 		tempLats.push(current.lat);
 		tempLngs.push(current.lng);
 
-		promises[i] = itinerary(position, toilettes[i]);
+		promises[i] = itinerary(position, toilettes[i])
+			.then(function(result){
+				return {
+					result: result,
+					toilet: toilettes[i]
+				}
+			});
 	}
 
 	// Fits the map so all 3 shortest routes are displayed
@@ -148,19 +167,21 @@ Promise.all([toilettesP, position]).then(function(values){
     // When all itineraries are computed
     Promise.all([promises[0], promises[1], promises[2]]).then(function(toilets){
 
-		console.log(toilets);
+		console.log('Les plus proches: ', toilets);
 		
 		toilets.sort(function (a, b) {
-			return (a.routes[0].legs[0].distance.value - b.routes[0].legs[0].distance.value);
+			return (a.result.routes[0].legs[0].distance.value - b.result.routes[0].legs[0].distance.value);
 		})
 
 		// Calculate itineraries for 3 closest toilets
 		for (var i = 0; i < 3; i++){
-			var result = toilets[i];
+			var result = toilets[i].result;
 			var rank = '';
+			var color = '#000000';
 
 			if (i == 0){
 				rank += 'first';
+				color = '#008200';
 			}
 			
 			// Get route points
@@ -180,7 +201,7 @@ Promise.all([toilettesP, position]).then(function(values){
 			var infos = L.divIcon({
 		        className: ['infos', rank].join(' '),
 		        iconSize: new L.Point(70, 70),
-		        iconAnchor: new L.Point(35, 100),
+		        iconAnchor: new L.Point(35, 108),
 		        html: time + '<div class="subInfos">' + distance + ' m </div>'
 		    });
 			
@@ -191,12 +212,11 @@ Promise.all([toilettesP, position]).then(function(values){
 		    // Draw route
 			var polyline = L.polyline(routeLatLng, {
 				className: ['route', rank].join(' '),
-				color: '#008200',
+				color: color,
 				smoothFactor: 3.0,
             	noClip: true,
             	opacity: 1
 			}).addTo(map);
-
 		}
 
 	}).catch(function(err){console.error(err)})
