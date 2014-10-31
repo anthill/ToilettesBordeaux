@@ -1,10 +1,8 @@
 'use strict'		
 
-module.exports = function(toilets, index){
-	console.log('Les plus proches: ', toilets);
+module.exports = function(toilet, index){
+	console.log('Les plus proches: ', toilet);
 
-
-	var result = toilets.result;
 	var rank = '';
 	var color = '#000000';
 
@@ -14,8 +12,8 @@ module.exports = function(toilets, index){
 	}
 	
 	// Get route points
-	var destination = L.latLng(result.mc.destination.k, result.mc.destination.B);
-	var route = result.routes[0];
+	var destination = L.latLng(toilet.mc.destination.k, toilet.mc.destination.B);
+	var route = toilet.routes[0];
 	var path = route.overview_path;
 	var routeLatLng = [];
 	for (var j = 0; j < path.length; j++)
