@@ -135,26 +135,32 @@ var toilettesP = getToilets('data/toilettes.json')
     });
 
 // render points on map regardless of geolocation
-toilettesP.then(function(toilettes){
-    toilettes.forEach(function(element){
-		var groups = setMarker(element);
+toilettesP
+	.then(function(toilettes){
+	    toilettes.forEach(function(element){
+			var groups = setMarker(element);
 
-		groups.forEach(function(group){
-			element.marker.addTo(group);
+			groups.forEach(function(group){
+				element.marker.addTo(group);
+			});
+			
 		});
-		
+	    
+	    drawables.toiletGroup.addTo(map);
 	});
-    
-    drawables.toiletGroup.addTo(map);
-    // Fonction a appeler sur filteredToilets
-});
 
 
+// var closestUrinoirs = undefined;
+// var closestSanitaires = undefined;
+// var closestHandis = undefined;
+
+////////////////////// FONCTION GENERALE
 var position = geo(updatePosition);
 
 // When user and toilet positions are available:
 Promise.all([toilettesP, position])
 	.then(function(values){
+		// set toiletFiltered(filter)
 		var toilettes = values[0],
 			position = values[1];
 
@@ -164,7 +170,7 @@ Promise.all([toilettesP, position])
 	})
 	.catch(function(err){console.error(err)})
 
-
+//////////////////////////
 
 
 function findClosest(list, position){
@@ -234,12 +240,8 @@ function findClosest(list, position){
 
 		// Draw infos on closest toilets
 		drawables.closestGroup.addTo(map);
-		
 
 	}).catch(function(err){console.error(err)})
-
-	// Draw all toilets
-	drawables.toiletGroup.addTo(map);
 }
 
 
