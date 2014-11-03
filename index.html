@@ -192,6 +192,29 @@
                 opacity: 1;
             }
 
+            #filter-box{
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                width: 70px;
+                height: 130px;
+                background-color: rgba(255, 255, 255, 1);
+                border-radius: 10px;
+                padding-top: 5px;
+                padding-bottom: 5px;
+            }
+
+            #filter-box > .filter{
+                position: relative;
+                margin: 10px auto 10px;
+                width: 45px;
+                height: 45px;
+                display: block;
+                font-size: 1.9em;
+                background-color: rgba(0, 0, 0, 1);
+                border-radius: 30%;
+            }
+
         </style>
 
         <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
@@ -226,6 +249,14 @@ TODO:
 
     <body>
         <div id="map"></div>
-
+        <div id="filter-box">
+            <div id="sanitaire-filter" class="filter">
+                <i class="fa fa-female"></i><i class="fa fa-male"></i>
+                <div class="pins filter"><i class="fa fa-fw fa-wheelchair"></i></div>
+            </div>
+            <div id="urinoir-filter" class="filter">
+                <i class="fa fa-male urinoir"></i>
+            </div>
+        </div>
     </body>
 </html>
