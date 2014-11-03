@@ -142,6 +142,19 @@ function addClicBehaviour(list, position){
     });
 }
 
+function calculateBounds(lats, lngs){
+	// Fits the map so all shortest routes are displayed
+	var north = U.getMaxOfArray(lats),
+		south = U.getMinOfArray(lats),
+		east = U.getMaxOfArray(lngs),
+		west = U.getMinOfArray(lngs);
+
+	var southWest = L.latLng(south, west),
+    	northEast = L.latLng(north, east);
+
+    return L.latLngBounds(southWest, northEast);
+}
+
 function findClosest(list, position){
 
 	list.forEach(function(toilette){
@@ -159,17 +172,8 @@ function findClosest(list, position){
 		closestLngs = closestToilettes.map(function(t){return t.lng;});
 
 	var itinerariesPs = closestToilettes.map(function(t){ return itinerary(position, t); });
-
-	// Fits the map so all shortest routes are displayed
-	var north = U.getMaxOfArray(closestLats),
-		south = U.getMinOfArray(closestLats),
-		east = U.getMaxOfArray(closestLngs),
-		west = U.getMinOfArray(closestLngs);
-
-	var southWest = L.latLng(south, west),
-    	northEast = L.latLng(north, east);
     
-    var bounds = L.latLngBounds(southWest, northEast);
+    var bounds = calculateBounds(closestLats, closestLngs);
 
     // When all itineraries are computed
     Promise.all(itinerariesPs).then(function(toilets){
