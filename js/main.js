@@ -36,6 +36,7 @@ var iconMap = {
 };
 
 var drawables = {
+	user: undefined,
 	singleGroup: L.layerGroup(),
 	closestGroup: L.layerGroup(),
 	urinoirGroup: L.layerGroup(),
@@ -69,15 +70,23 @@ function updatePosition(position){
 	// Add click event on user position
 	marker.addEventListener('click', function(){
 	    drawables.singleGroup.clearLayers();
-	    drawables.closestGroup.addTo(map);
+	    updateMap(drawables.closestGroup);
 	});
 
-	map.addLayer(marker);
+	updateMap(marker);
 
 	return {
 		lat: latitude,
 		lng: longitude
 	};
+}
+
+function updateMap(items, boundaries){
+	if (boundaries){
+		map.fitBounds(boundaries);
+	}
+	
+	items.addTo(map);
 }
 
 function setMarker(toilet){
@@ -109,6 +118,85 @@ function setMarker(toilet){
     toilet.marker = L.marker([toilet.lat, toilet.lng], {icon: icon});
     return groups;
 }
+
+function addClicBehaviour(list, position){
+	list.forEach(function(toilette){
+
+        // Add click event on toilet
+	    toilette.marker.addEventListener('click', function(){
+	    	map.removeLayer(drawables.closestGroup);
+	    	drawables.singleGroup.clearLayers();
+
+			itinerary(position, toilette)
+				.then(function(result){
+					var infos = addInfos(result, 1);
+
+					infos.polyline.addTo(drawables.singleGroup);
+					infos.marker.addTo(drawables.singleGroup);
+					
+					updateMap(drawables.singleGroup);
+					// drawables.singleGroup.addTo(map);
+
+				}).catch(function(err){console.error(err)})
+		});
+    });
+}
+
+function findClosest(list, position){
+
+	list.forEach(function(toilette){
+        // Calculate rough distance b/w user and toilet
+        toilette.d = Math.hypot(toilette.lat - position.lat, toilette.lng - position.lng);
+    });
+    
+	list.sort(function (a, b) {
+		return (a.d - b.d);
+	});
+
+    var closestToilettes = list.slice(0, 3);
+    
+	var closestLats = closestToilettes.map(function(t){return t.lat;}),
+		closestLngs = closestToilettes.map(function(t){return t.lng;});
+
+	var itinerariesPs = closestToilettes.map(function(t){ return itinerary(position, t); });
+
+	// Fits the map so all shortest routes are displayed
+	var north = U.getMaxOfArray(closestLats),
+		south = U.getMinOfArray(closestLats),
+		east = U.getMaxOfArray(closestLngs),
+		west = U.getMinOfArray(closestLngs);
+
+	var southWest = L.latLng(south, west),
+    	northEast = L.latLng(north, east);
+    
+    var bounds = L.latLngBounds(southWest, northEast);
+
+    // When all itineraries are computed
+    Promise.all(itinerariesPs).then(function(toilets){
+
+		toilets.sort(function (a, b) {
+			return (a.routes[0].legs[0].distance.value - b.routes[0].legs[0].distance.value);
+		});
+
+		// Calculate itineraries for 3 closest toilets
+		toilets.forEach(function(toilet, i){
+
+			console.log('toilet ', toilet);
+
+			var infos = addInfos(toilet, i);
+			infos.polyline.addTo(drawables.closestGroup);
+			infos.marker.addTo(drawables.closestGroup);
+
+        });
+
+		// Draw infos on closest toilets
+		updateMap(drawables.closestGroup, bounds);
+
+	}).catch(function(err){console.error(err)})
+}
+
+
+/// MAIN CODE
 
 // Get toilets position
 var toilettesP = getToilets('data/toilettes.json')
@@ -146,7 +234,7 @@ toilettesP
 			
 		});
 	    
-	    drawables.toiletGroup.addTo(map);
+	    updateMap(drawables.toiletGroup);
 	});
 
 
@@ -166,6 +254,8 @@ Promise.all([toilettesP, position])
 
 		console.log('verif ', toilettes);
 
+		addClicBehaviour(toilettes, position);
+
 		findClosest(toilettes, position);
 	})
 	.catch(function(err){console.error(err)})
@@ -173,76 +263,8 @@ Promise.all([toilettesP, position])
 //////////////////////////
 
 
-function findClosest(list, position){
 
-	list.forEach(function(toilette){
-        // Calculate rough distance b/w user and toilet
-        toilette.d = Math.hypot(toilette.lat - position.lat, toilette.lng - position.lng);
 
-        // Add click event on toilet
-	    toilette.marker.addEventListener('click', function(){
-	    	map.removeLayer(drawables.closestGroup);
-	    	drawables.singleGroup.clearLayers();
-
-			itinerary(position, toilette)
-				.then(function(result){
-					var infos = addInfos(result, 1);
-
-					infos.polyline.addTo(drawables.singleGroup);
-					infos.marker.addTo(drawables.singleGroup);
-					
-					drawables.singleGroup.addTo(map);
-
-				}).catch(function(err){console.error(err)})
-		});
-    });
-    
-	list.sort(function (a, b) {
-		return (a.d - b.d);
-	});
-
-    var closestToilettes = list.slice(0, 3);
-    
-	var closestLats = closestToilettes.map(function(t){return t.lat;}),
-		closestLngs = closestToilettes.map(function(t){return t.lng;});
-
-	var itinerariesPs = closestToilettes.map(function(t){ return itinerary(position, t); });
-
-	// Fits the map so all shortest routes are displayed
-	var north = U.getMaxOfArray(closestLats),
-		south = U.getMinOfArray(closestLats),
-		east = U.getMaxOfArray(closestLngs),
-		west = U.getMinOfArray(closestLngs);
-
-	var southWest = L.latLng(south, west),
-    	northEast = L.latLng(north, east);
-    
-    var bounds = L.latLngBounds(southWest, northEast);
-    map.fitBounds(bounds);
-
-    // When all itineraries are computed
-    Promise.all(itinerariesPs).then(function(toilets){
-
-		toilets.sort(function (a, b) {
-			return (a.routes[0].legs[0].distance.value - b.routes[0].legs[0].distance.value);
-		});
-
-		// Calculate itineraries for 3 closest toilets
-		toilets.forEach(function(toilet, i){
-
-			console.log('toilet ', toilet);
-
-			var infos = addInfos(toilet, i);
-			infos.polyline.addTo(drawables.closestGroup);
-			infos.marker.addTo(drawables.closestGroup);
-
-        });
-
-		// Draw infos on closest toilets
-		drawables.closestGroup.addTo(map);
-
-	}).catch(function(err){console.error(err)})
-}
 
 
 
