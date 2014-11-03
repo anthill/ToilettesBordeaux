@@ -214,11 +214,10 @@
                 border-radius: 30%;
             }
 
-            #handi-filter{
-                width: 20px;
-                height: 20px;
-                font-size: 0.43em;
-                font-weight: bold;
+            #handi-filter.filter{
+                width: 45px;
+                height: 45px;
+                font-size: 1.9em;
                 border-radius: 50%;
             }
 
@@ -240,7 +239,7 @@
 
         </style>
 
-        <!-- <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet"> -->
+        <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
 
         <script>
             if (!Math.hypot) {
@@ -268,13 +267,13 @@
     <body>
         <div id="map"></div>
         <div id="filter-box">
-            <div id="sanitaire-filter" class="filter inactive">
+            <div id="sanitaire-filter" class="filter active">
                 <i class="fa fa-female"></i><i class="fa fa-male"></i>
             </div>
-            <div id="urinoir-filter" class="filter inactive">
+            <div id="urinoir-filter" class="filter active">
                 <i class="fa fa-male urinoir"></i>
             </div>
-            <div id="handi-filter" class="filter inactive">
+            <div id="handi-filter" class="filter active">
                 <i class="fa fa-fw fa-wheelchair"></i>
             </div>
         </div>
