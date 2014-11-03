@@ -185,8 +185,6 @@ function findClosest(list, position){
 		// Calculate itineraries for 3 closest toilets
 		toilets.forEach(function(toilet, i){
 
-			console.log('toilet ', toilet);
-
 			var infos = addInfos(toilet, i);
 			infos.polyline.addTo(drawables.closestGroup);
 			infos.marker.addTo(drawables.closestGroup);
@@ -197,6 +195,27 @@ function findClosest(list, position){
 		updateMap(drawables.closestGroup, bounds);
 
 	}).catch(function(err){console.error(err)})
+}
+
+function filterToilets(list, type){
+	var filtered = [];
+
+	if (type === 'handi'){
+		list.forEach(function(toilette){
+        	if (toilette.handicap){
+				filtered.push(toilette);
+			}
+    	});
+	}
+	else {
+		list.forEach(function(toilette){
+			if (toilette.class === type){
+				filtered.push(toilette);
+			}
+		});
+	}
+
+    return filtered;
 }
 
 
@@ -242,9 +261,9 @@ toilettesP
 	});
 
 
-// var closestUrinoirs = undefined;
-// var closestSanitaires = undefined;
-// var closestHandis = undefined;
+var closestUrinoirs = undefined;
+var closestSanitaires = undefined;
+var closestHandis = undefined;
 
 ////////////////////// FONCTION GENERALE
 var position = geo(updatePosition);
@@ -256,11 +275,13 @@ Promise.all([toilettesP, position])
 		var toilettes = values[0],
 			position = values[1];
 
-		console.log('verif ', toilettes);
+		var test = filterToilets(toilettes, 'handi');
+
+		// console.log('verif ', test);
 
 		addClicBehaviour(toilettes, position);
 
-		findClosest(toilettes, position);
+		findClosest(test, position);
 	})
 	.catch(function(err){console.error(err)})
 
