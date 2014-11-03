@@ -196,8 +196,8 @@
                 position: absolute;
                 top: 10px;
                 right: 10px;
-                width: 70px;
-                height: 130px;
+                width: 60px;
+                height: 185px;
                 background-color: rgba(255, 255, 255, 1);
                 border-radius: 10px;
                 padding-top: 5px;
@@ -211,13 +211,36 @@
                 height: 45px;
                 display: block;
                 font-size: 1.9em;
-                background-color: rgba(0, 0, 0, 1);
                 border-radius: 30%;
+            }
+
+            #handi-filter{
+                width: 20px;
+                height: 20px;
+                font-size: 0.43em;
+                font-weight: bold;
+                border-radius: 50%;
+            }
+
+            #handi-filter .fa-wheelchair{
+                left: 5px;
+                top: 7px;
+            }
+
+            #filter-box > .filter.active {
+                background-color: rgba(0, 0, 0, 1);
+            }
+            #filter-box > .filter.inactive {
+                background-color: rgb(220, 220, 220);
+            }
+
+            #handi-filter.filter.active {
+                background-color: blue;
             }
 
         </style>
 
-        <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+        <!-- <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet"> -->
 
         <script>
             if (!Math.hypot) {
@@ -242,20 +265,17 @@
         <title> Toilettes Bordeaux </title>
     </head>
 
-    <!--
-TODO:
-* geoloc all recycling centers.
--->
-
     <body>
         <div id="map"></div>
         <div id="filter-box">
-            <div id="sanitaire-filter" class="filter">
+            <div id="sanitaire-filter" class="filter inactive">
                 <i class="fa fa-female"></i><i class="fa fa-male"></i>
-                <div class="pins filter"><i class="fa fa-fw fa-wheelchair"></i></div>
             </div>
-            <div id="urinoir-filter" class="filter">
+            <div id="urinoir-filter" class="filter inactive">
                 <i class="fa fa-male urinoir"></i>
+            </div>
+            <div id="handi-filter" class="filter inactive">
+                <i class="fa fa-fw fa-wheelchair"></i>
             </div>
         </div>
     </body>

@@ -142,6 +142,9 @@ function addClicBehaviour(list, position){
     });
 }
 
+
+
+
 function calculateBounds(lats, lngs){
 	// Fits the map so all shortest routes are displayed
 	var north = U.getMaxOfArray(lats),
@@ -200,26 +203,79 @@ function findClosest(list, position){
 function filterToilets(list, type){
 	var filtered = [];
 
-	if (type === 'handi'){
-		list.forEach(function(toilette){
-        	if (toilette.handicap){
+	// if (type === 'handi'){
+	// 	list.forEach(function(toilette){
+ //        	if (toilette.handicap){
+	// 			filtered.push(toilette);
+	// 		}
+ //    	});
+	// }
+	// else {
+	// 	list.forEach(function(toilette){
+	// 		if (type.indexOf(toilette.class)){
+	// 			filtered.push(toilette);
+	// 		}
+	// 	});
+	// }
+
+	list.forEach(function(toilette){
+		if (type.indexOf(toilette.class) != -1){
+			filtered.push(toilette);
+		}
+		if ((type.indexOf('handi') != -1) && toilette.handicap){
+			if (filtered.indexOf(toilette) === -1){ // check if toilette isn't already added
 				filtered.push(toilette);
-			}
-    	});
-	}
-	else {
-		list.forEach(function(toilette){
-			if (toilette.class === type){
-				filtered.push(toilette);
-			}
-		});
-	}
+			}	
+		}
+	});
 
     return filtered;
 }
 
 
 /// MAIN CODE
+
+
+var filterButtons = document.getElementsByClassName('filter');
+
+// for each doesn't seem to work with an array of DOM elements...
+// need to handle the case where none is selected
+filterButtons[0].addEventListener('click', function(){
+	if (this.className === 'filter active'){
+		this.className = 'filter inactive'
+	}
+	else {
+		this.className = 'filter active'
+	}
+});
+
+filterButtons[1].addEventListener('click', function(){
+	if (this.className === 'filter active'){
+		this.className = 'filter inactive'
+	}
+	else {
+		this.className = 'filter active'
+	}
+});
+
+filterButtons[2].addEventListener('click', function(){
+	if (this.className === 'filter active'){
+		this.className = 'filter inactive'
+	}
+	else {
+		this.className = 'filter active'
+	}
+});
+
+// filterButtons.forEach(function(button){
+// 	console.log('test');
+// 	button.addEventListener('click', function(){
+// 		// filtersButtons.forEach(function(temp){
+// 		// 	temp.style.className = 'filter';
+// 		// });
+// 		button.style.className = 'filter active';
+// 	});
+// });
 
 // Get toilets position
 var toilettesP = getToilets('data/toilettes.json')
@@ -275,7 +331,8 @@ Promise.all([toilettesP, position])
 		var toilettes = values[0],
 			position = values[1];
 
-		var test = filterToilets(toilettes, 'handi');
+		var test = filterToilets(toilettes, ['handi', 'urinoir', 'sanitaire']);
+		console.log("filtered ", test);
 
 		// console.log('verif ', test);
 
