@@ -220,6 +220,9 @@ function activateMode(dom){
 
 function activateAllModes(){
 	modes = ['urinoir', 'sanitaire', 'handicap'];
+	filterButtons[0].className = 'filter active';
+	filterButtons[1].className = 'filter active';
+	filterButtons[2].className = 'filter active';
 }
 
 function deactivateAllModes(){
