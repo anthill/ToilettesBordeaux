@@ -73,10 +73,10 @@ function updatePosition(position){
 	// Add click event on user position
 	marker.addEventListener('click', function(){
 	    drawables.singleGroup.clearLayers();
-	    updateObj(drawables.closestGroup);
+	    updateClosest(drawables.closestGroup);
 	});
 
-	updateObj(marker);
+	updateClosest(marker);
 
 	return {
 		lat: latitude,
@@ -102,7 +102,7 @@ function displayModes(){
 	});
 }
 
-function updateObj(item, boundaries){
+function updateClosest(item, boundaries){
 	if (boundaries){
 		map.fitBounds(boundaries);
 	}
@@ -158,8 +158,7 @@ function addClicBehaviour(list, position){
 					infos.polyline.addTo(drawables.singleGroup);
 					infos.marker.addTo(drawables.singleGroup);
 					
-					updateObj(drawables.singleGroup);
-					// drawables.singleGroup.addTo(map);
+					updateClosest(drawables.singleGroup);
 
 				}).catch(function(err){console.error(err)})
 		});
@@ -226,8 +225,12 @@ function deactivateAllModes(){
 	filterButtons[2].className = 'filter inactive';
 }
 
+
 function addClicFilter(toilettes, position){
-	// for each doesn't seem to work with an array of DOM elements...
+	// // for each doesn't seem to work with an array of DOM elements...
+	// filterButtons.forEach(function(){
+	// 	console.log('test');
+	// });
 
 	// For 'urinoir'
 	filterButtons[0].addEventListener('click', function(){
@@ -237,15 +240,12 @@ function addClicFilter(toilettes, position){
 		}
 		else {
 			if (this.className === 'filter active'){
-				deactivateMode(this, modes);
+				deactivateMode(this);
 			}
 			else {
-				activateMode(this, modes);
+				activateMode(this);
 			}
 		}
-
-		drawables.singleGroup.clearLayers();
-		drawables.closestGroup.clearLayers();
 
 		var selection = filterToilets(toilettes, modes);
 		findClosest(selection, position);
@@ -259,16 +259,13 @@ function addClicFilter(toilettes, position){
 		}
 		else {
 			if (this.className === 'filter active'){
-				deactivateMode(this, modes);
+				deactivateMode(this);
 			}
 			else {
-				activateMode(this, modes);
+				activateMode(this);
 			}
 		}
-
-		drawables.singleGroup.clearLayers();
-		drawables.closestGroup.clearLayers();
-
+		
 		var selection = filterToilets(toilettes, modes);
 		findClosest(selection, position);
 	});
@@ -281,15 +278,12 @@ function addClicFilter(toilettes, position){
 		}
 		else {
 			if (this.className === 'filter active'){
-				deactivateMode(this, modes);
+				deactivateMode(this);
 			}
 			else {
-				activateMode(this, modes);
+				activateMode(this);
 			}
 		}
-
-		drawables.singleGroup.clearLayers();
-		drawables.closestGroup.clearLayers();
 
 		var selection = filterToilets(toilettes, modes);
 		findClosest(selection, position);
@@ -297,6 +291,9 @@ function addClicFilter(toilettes, position){
 }
 
 function findClosest(list, position){
+
+	drawables.singleGroup.clearLayers();
+	drawables.closestGroup.clearLayers();
 
 	list.forEach(function(toilette){
         // Calculate rough distance b/w user and toilet
@@ -312,8 +309,11 @@ function findClosest(list, position){
 	var closestLats = closestToilettes.map(function(t){return t.lat;}),
 		closestLngs = closestToilettes.map(function(t){return t.lng;});
 
-	console.log('list ', list);
-	console.log('position ', position);
+	closestLats.push(position.lat);
+	closestLngs.push(position.lng);
+
+	// console.log('list ', list);
+	// console.log('position ', position);
 
 	var itinerariesPs = closestToilettes.map(function(t){ return itinerary(position, t); });
     
@@ -336,7 +336,7 @@ function findClosest(list, position){
         });
 
 		// Draw infos on closest toilets
-		updateObj(drawables.closestGroup, bounds);
+		updateClosest(drawables.closestGroup, bounds);
 
 	}).catch(function(err){console.error(err)})
 }
@@ -387,24 +387,19 @@ toilettesP
 	});
 
 
-var closestUrinoirs = undefined;
-var closestSanitaires = undefined;
-var closestHandis = undefined;
+// var closestUrinoirs = undefined;
+// var closestSanitaires = undefined;
+// var closestHandis = undefined;
 
-////////////////////// FONCTION GENERALE
 var position = geo(updatePosition);
 var filterButtons = document.getElementsByClassName('filter');
 
 // When user and toilet positions are available:
 Promise.all([toilettesP, position])
 	.then(function(values){
-		// set toiletFiltered(filter)
 		var toilettes = values[0],
 			position = values[1];
 
-		// selection = filterToilets(toilettes, ['handi', 'urinoir', 'sanitaire']);
-
-		// console.log('verif ', test);
 		addClicFilter(toilettes, position);
 
 		addClicBehaviour(toilettes, position);
