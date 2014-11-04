@@ -102,17 +102,6 @@ function displayModes(){
 	});
 }
 
-function updateClosest(item, boundaries){
-	if (boundaries){
-		map.fitBounds(boundaries);
-	}
-
-	map.removeLayer(drawables.closestGroup);
-	map.removeLayer(drawables.singleGroup);
-
-	item.addTo(map);
-}
-
 function setMarker(toilet){
 	// Add icons from FontAwesome
 	var myHtml = '';
@@ -172,10 +161,25 @@ function calculateBounds(lats, lngs){
 		east = U.getMaxOfArray(lngs),
 		west = U.getMinOfArray(lngs);
 
+	console.log("north ", north);
 	var southWest = L.latLng(south, west),
     	northEast = L.latLng(north, east);
 
     return L.latLngBounds(southWest, northEast);
+}
+
+function updateClosest(item, boundaries){
+	if (boundaries){
+		map.fitBounds(boundaries, {
+			paddingTopLeft: [0, 110],
+			paddingBottomRight: [0, 50]
+		});
+	}
+
+	map.removeLayer(drawables.closestGroup);
+	map.removeLayer(drawables.singleGroup);
+
+	item.addTo(map);
 }
 
 function filterToilets(list, types){
