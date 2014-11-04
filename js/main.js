@@ -327,7 +327,7 @@ function findClosest(list, position){
     Promise.all(itinerariesPs).then(function(toilets){
 
 		toilets.sort(function (a, b) {
-			return (a.routes[0].legs[0].distance.value - b.routes[0].legs[0].distance.value);
+			return -(a.routes[0].legs[0].distance.value - b.routes[0].legs[0].distance.value);
 		});
 
 		// Calculate itineraries for 3 closest toilets

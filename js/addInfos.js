@@ -6,7 +6,7 @@ module.exports = function(toilet, index){
 	var rank = '';
 	var color = '#000000';
 
-	if (index == 0){
+	if (index == 2){
 		rank += 'first';
 		color = '#008200';
 	}
@@ -29,7 +29,7 @@ module.exports = function(toilet, index){
 
 	var myIcon, myAnchor;
 
-	if (itTime >= 600){
+	if (itTime >= 600){ // if time to display is too long for regular bubble
 		myIcon = new L.Point(100, 70);
 		myAnchor = new L.Point(50, 108);
 	}
