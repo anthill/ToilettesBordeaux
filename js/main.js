@@ -87,17 +87,27 @@ function updatePosition(position){
 function displayModes(){
 
 	map.removeLayer(drawables.toiletGroup);
+	map.removeLayer(drawables.handiGroup);
+	map.removeLayer(drawables.urinoirGroup);
+	map.removeLayer(drawables.sanitaireGroup);
 
 	modes.forEach(function(mode){
 		switch (mode) {
 			case 'urinoir':
+				console.log('mode ', mode);
 				drawables.urinoirGroup.addTo(map);
+				break;
 			case 'sanitaire':
+				console.log('mode ', mode);
 				drawables.sanitaireGroup.addTo(map);
+				break;
 			case 'handicap':
+				console.log('mode ', mode);
 				drawables.handiGroup.addTo(map);
+				break;
 			default:
 				drawables.toiletGroup.addTo(map);
+				break;
 		}
 	});
 }
@@ -205,6 +215,7 @@ function deactivateMode(dom){
 	var index = modes.indexOf(filterMap[dom.id]);
 	if (index > -1){
 		modes.splice(index, 1);
+		displayModes();
 
 		if (modes.length === 0){
 			activateAllModes(modes);
@@ -216,6 +227,7 @@ function activateMode(dom){
 	dom.className = 'filter active';
 	var id = dom.id;
 	modes.push(filterMap[id]);
+	displayModes();
 }
 
 function activateAllModes(){
@@ -223,6 +235,7 @@ function activateAllModes(){
 	filterButtons[0].className = 'filter active';
 	filterButtons[1].className = 'filter active';
 	filterButtons[2].className = 'filter active';
+	displayModes();
 }
 
 function deactivateAllModes(){
