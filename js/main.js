@@ -32,10 +32,16 @@ var iconMap = {
 	"urinoir" : "male",
 	"sanitaire": "female",
 	"handicap": "wheelchair",
-	"chalet": "umbrella"
+};
+
+var filterMap = {
+	"urinoir-filter" : "urinoir",
+	"sanitaire-filter": "sanitaire",
+	"handi-filter": "handicap",
 };
 
 var drawables = {
+	user: undefined,
 	singleGroup: L.layerGroup(),
 	closestGroup: L.layerGroup(),
 	urinoirGroup: L.layerGroup(),
@@ -43,7 +49,6 @@ var drawables = {
 	handiGroup: L.layerGroup(),
 	toiletGroup: L.layerGroup()
 };
-
 
 // Get user position
 function updatePosition(position){
@@ -68,10 +73,10 @@ function updatePosition(position){
 	// Add click event on user position
 	marker.addEventListener('click', function(){
 	    drawables.singleGroup.clearLayers();
-	    drawables.closestGroup.addTo(map);
+	    updateClosest(drawables.closestGroup);
 	});
 
-	map.addLayer(marker);
+	updateClosest(marker);
 
 	return {
 		lat: latitude,
@@ -79,7 +84,286 @@ function updatePosition(position){
 	};
 }
 
-var position = geo(updatePosition);
+function displayModes(){
+
+	map.removeLayer(drawables.toiletGroup);
+	map.removeLayer(drawables.handiGroup);
+	map.removeLayer(drawables.urinoirGroup);
+	map.removeLayer(drawables.sanitaireGroup);
+
+	modes.forEach(function(mode){
+		switch (mode) {
+			case 'urinoir':
+				console.log('mode ', mode);
+				drawables.urinoirGroup.addTo(map);
+				break;
+			case 'sanitaire':
+				console.log('mode ', mode);
+				drawables.sanitaireGroup.addTo(map);
+				break;
+			case 'handicap':
+				console.log('mode ', mode);
+				drawables.handiGroup.addTo(map);
+				break;
+			default:
+				drawables.toiletGroup.addTo(map);
+				break;
+		}
+	});
+}
+
+function setMarker(toilet){
+	// Add icons from FontAwesome
+	var myHtml = '';
+	var groups = [drawables.toiletGroup];
+
+	if (toilet.class == 'sanitaire') {
+		myHtml += '<i class="fa fa-female"></i><i class="fa fa-male"></i>\n';
+		groups.push(drawables.sanitaireGroup);
+	}
+	else {
+		myHtml += '<i class="fa fa-male urinoir"></i>\n';
+		groups.push(drawables.urinoirGroup);
+	}
+	
+	if (toilet.handicap == true){
+		myHtml += '<div class="pins"><i class="fa fa-fw fa-wheelchair"></i></div>\n';
+		groups.push(drawables.handiGroup);
+	} 
+
+	var icon = L.divIcon({
+        className: "icon",
+        iconSize: new L.Point(46, 46),
+	    iconAnchor: new L.Point(23, 23),
+        html: myHtml
+    });
+
+    toilet.marker = L.marker([toilet.lat, toilet.lng], {icon: icon});
+    return groups;
+}
+
+function addClicBehaviour(list, position){
+	list.forEach(function(toilette){
+
+        // Add click event on toilet
+	    toilette.marker.addEventListener('click', function(){
+	    	map.removeLayer(drawables.closestGroup);
+	    	drawables.singleGroup.clearLayers();
+
+			itinerary(position, toilette)
+				.then(function(result){
+					var infos = addInfos(result, 1);
+
+					infos.polyline.addTo(drawables.singleGroup);
+					infos.marker.addTo(drawables.singleGroup);
+					
+					updateClosest(drawables.singleGroup);
+
+				}).catch(function(err){console.error(err)})
+		});
+    });
+}
+
+function calculateBounds(lats, lngs){
+	// Fits the map so all shortest routes are displayed
+	var north = U.getMaxOfArray(lats),
+		south = U.getMinOfArray(lats),
+		east = U.getMaxOfArray(lngs),
+		west = U.getMinOfArray(lngs);
+
+	console.log("north ", north);
+	var southWest = L.latLng(south, west),
+    	northEast = L.latLng(north, east);
+
+    return L.latLngBounds(southWest, northEast);
+}
+
+function updateClosest(item, boundaries){
+	if (boundaries){
+		map.fitBounds(boundaries, {
+			paddingTopLeft: [0, 110],
+			paddingBottomRight: [0, 50]
+		});
+	}
+
+	map.removeLayer(drawables.closestGroup);
+	map.removeLayer(drawables.singleGroup);
+
+	item.addTo(map);
+}
+
+function filterToilets(list, types){
+	var filtered = [];
+
+	list.forEach(function(toilette){
+		if (types.indexOf(toilette.class) != -1){
+			filtered.push(toilette);
+		}
+		if ((types.indexOf('handicap') != -1) && toilette.handicap){
+			if (filtered.indexOf(toilette) === -1){ // check if toilette isn't already added
+				filtered.push(toilette);
+			}	
+		}
+	});
+
+    return filtered;
+}
+
+function deactivateMode(dom){
+	dom.className = 'filter inactive';
+
+	var index = modes.indexOf(filterMap[dom.id]);
+	if (index > -1){
+		modes.splice(index, 1);
+		displayModes();
+
+		if (modes.length === 0){
+			activateAllModes(modes);
+		}
+	}
+}
+
+function activateMode(dom){
+	dom.className = 'filter active';
+	var id = dom.id;
+	modes.push(filterMap[id]);
+	displayModes();
+}
+
+function activateAllModes(){
+	modes = ['urinoir', 'sanitaire', 'handicap'];
+	filterButtons[0].className = 'filter active';
+	filterButtons[1].className = 'filter active';
+	filterButtons[2].className = 'filter active';
+	displayModes();
+}
+
+function deactivateAllModes(){
+	modes = [];
+	filterButtons[0].className = 'filter inactive';
+	filterButtons[1].className = 'filter inactive';
+	filterButtons[2].className = 'filter inactive';
+}
+
+
+function addClicFilter(toilettes, position){
+	// // for each doesn't seem to work with an array of DOM elements...
+	// filterButtons.forEach(function(){
+	// 	console.log('test');
+	// });
+
+	// For 'urinoir'
+	filterButtons[0].addEventListener('click', function(){
+		if (modes.length === 3){ // if all is selected (default), click selects rather than deselects
+			deactivateAllModes();
+			activateMode(this);
+		}
+		else {
+			if (this.className === 'filter active'){
+				deactivateMode(this);
+			}
+			else {
+				activateMode(this);
+			}
+		}
+
+		var selection = filterToilets(toilettes, modes);
+		findClosest(selection, position);
+	});
+
+	// For 'sanitaire'
+	filterButtons[1].addEventListener('click', function(){
+		if (modes.length === 3){ // if all is selected (default), click selects rather than deselects
+			deactivateAllModes();
+			activateMode(this);
+		}
+		else {
+			if (this.className === 'filter active'){
+				deactivateMode(this);
+			}
+			else {
+				activateMode(this);
+			}
+		}
+		
+		var selection = filterToilets(toilettes, modes);
+		findClosest(selection, position);
+	});
+
+	// For 'handi'
+	filterButtons[2].addEventListener('click', function(){
+		if (modes.length === 3){ // if all is selected (default), click selects rather than deselects
+			deactivateAllModes();
+			activateMode(this);
+		}
+		else {
+			if (this.className === 'filter active'){
+				deactivateMode(this);
+			}
+			else {
+				activateMode(this);
+			}
+		}
+
+		var selection = filterToilets(toilettes, modes);
+		findClosest(selection, position);
+	});
+}
+
+function findClosest(list, position){
+
+	drawables.singleGroup.clearLayers();
+	drawables.closestGroup.clearLayers();
+
+	list.forEach(function(toilette){
+        // Calculate rough distance b/w user and toilet
+        toilette.d = Math.hypot(toilette.lat - position.lat, toilette.lng - position.lng);
+    });
+    
+	list.sort(function (a, b) {
+		return (a.d - b.d);
+	});
+
+    var closestToilettes = list.slice(0, 3);
+    
+	var closestLats = closestToilettes.map(function(t){return t.lat;}),
+		closestLngs = closestToilettes.map(function(t){return t.lng;});
+
+	closestLats.push(position.lat);
+	closestLngs.push(position.lng);
+
+	// console.log('list ', list);
+	// console.log('position ', position);
+
+	var itinerariesPs = closestToilettes.map(function(t){ return itinerary(position, t); });
+    
+    var bounds = calculateBounds(closestLats, closestLngs);
+
+    // When all itineraries are computed
+    Promise.all(itinerariesPs).then(function(toilets){
+
+		toilets.sort(function (a, b) {
+			return -(a.routes[0].legs[0].distance.value - b.routes[0].legs[0].distance.value);
+		});
+
+		// Calculate itineraries for 3 closest toilets
+		toilets.forEach(function(toilet, i){
+
+			var infos = addInfos(toilet, i);
+			infos.polyline.addTo(drawables.closestGroup);
+			infos.marker.addTo(drawables.closestGroup);
+
+        });
+
+		// Draw infos on closest toilets
+		updateClosest(drawables.closestGroup, bounds);
+
+	}).catch(function(err){console.error(err)})
+}
+
+
+
+/// MAIN CODE
 
 // Get toilets position
 var toilettesP = getToilets('data/toilettes.json')
@@ -98,175 +382,59 @@ var toilettesP = getToilets('data/toilettes.json')
 	                nom: t["nom"],
 	                // typologie: t["typologie"],
 	                class: typologieToCSSClass[t["typologie"]],
-	                handicap: option
+	                handicap: option,
+	                marker: undefined
             	};
         	}
         });
     });
 
+var modes = ['urinoir', 'sanitaire', 'handicap'];
 
 // render points on map regardless of geolocation
-toilettesP.then(function(toilettes){
-    toilettes.forEach(function(element){
-        
-		// Add icons from FontAwesome
-		var myHtml = '';
+toilettesP
+	.then(function(toilettes){
+	    toilettes.forEach(function(element){
+			var groups = setMarker(element);
 
-		if (element.class == 'sanitaire') {
-			myHtml += '<i class="fa fa-female"></i><i class="fa fa-male"></i>\n';
-		}
-		else {
-			myHtml += '<i class="fa fa-male urinoir"></i>\n';
-		}
-		
-		if (element.handicap == true){
-			myHtml += '<div class="pins"><i class="fa fa-fw fa-wheelchair"></i></div>\n';
-		} 
-
-		var icon = L.divIcon({
-	        className: "icon",
-	        iconSize: new L.Point(46, 46),
-		    iconAnchor: new L.Point(23, 23),
-	        html: myHtml
-	    });
-
-	    var marker = L.marker([element.lat, element.lng], {icon: icon});
-	    element.marker = marker;
-
-	    // Add click event on toilet
-	    marker.addEventListener('click', function(){
-	    	map.removeLayer(drawables.closestGroup);
-	    	drawables.singleGroup.clearLayers();
-
-			itinerary(position, element)
-			.then(function(result){
-				return {
-					result: result,
-					toilet: element
-				}
-			})
-			.then(function(result){
-				var infos = addInfos(result, 1);
-
-				infos.polyline.addTo(drawables.singleGroup);
-				infos.marker.addTo(drawables.singleGroup);
-				
-				drawables.singleGroup.addTo(map);
-
-			}).catch(function(err){console.error(err)})
+			groups.forEach(function(group){
+				element.marker.addTo(group);
+			});
+			
 		});
-
-	    marker.addTo(drawables.toiletGroup);
 	    
+	    displayModes();
 	});
-    
-    drawables.toiletGroup.addTo(map);
-});
 
+
+// var closestUrinoirs = undefined;
+// var closestSanitaires = undefined;
+// var closestHandis = undefined;
+
+var position = geo(updatePosition);
+var filterButtons = document.getElementsByClassName('filter');
 
 // When user and toilet positions are available:
-Promise.all([toilettesP, position]).then(function(values){
+Promise.all([toilettesP, position])
+	.then(function(values){
+		var toilettes = values[0],
+			position = values[1];
 
-	var toilettes = values[0],
-		position = values[1];
+		addClicFilter(toilettes, position);
 
-	toilettes.forEach(function(toilette){
-        // Calculate rough distance b/w user and toilet
-        toilette.d = Math.hypot(toilette.lat - position.lat, toilette.lng - position.lng);
-    });
-    
-	toilettes.sort(function (a, b) {
-		return (a.d - b.d);
-	});
+		addClicBehaviour(toilettes, position);
 
-    var closestToillettes = toilettes.slice(0, 3);
-    
-	var closestLats = closestToillettes.map(function(t){return t.lat;}),
-		closestLngs = closestToillettes.map(function(t){return t.lng;});
+		findClosest(toilettes, position);
+	})
+	.catch(function(err){console.error(err)})
 
-	var itinerariesPs = closestToillettes.map(function(t){ return itinerary(position, t); });
-
-	// Fits the map so all shortest routes are displayed
-	var north = U.getMaxOfArray(closestLats),
-		south = U.getMinOfArray(closestLats),
-		east = U.getMaxOfArray(closestLngs),
-		west = U.getMinOfArray(closestLngs);
-
-	var southWest = L.latLng(south, west),
-    	northEast = L.latLng(north, east);
-    
-    var bounds = L.latLngBounds(southWest, northEast);
-    map.fitBounds(bounds);
-
-    // When all itineraries are computed
-    Promise.all(itinerariesPs).then(function(toilets){
-
-		toilets.sort(function (a, b) {
-			return (a.routes[0].legs[0].distance.value - b.routes[0].legs[0].distance.value);
-		});
-
-		// Calculate itineraries for 3 closest toilets
-		toilets.forEach(function(result, i){
-        
-			var rank = '';
-
-			if (i === 0){
-				rank += 'first';
-			}
-			
-			// Get route points
-			var destination = L.latLng(result.mc.destination.k, result.mc.destination.B);
-			var route = result.routes[0];
-			var path = route.overview_path;
-			var routeLatLng = [];
-			for (var j = 0; j < path.length; j++)
-				routeLatLng[j] = {lat: path[j].k, lng: path[j].B};
-
-			// Create and add infos on the route
-			var minutes = Math.floor(route.legs[0].duration.value / 60);
-			var secondes = route.legs[0].duration.value % 60;
-			var time = minutes + "' "  + secondes + "\" ";
-			var distance = route.legs[0].distance.value;
-
-			var infos = L.divIcon({
-		        className: ['infos', rank].join(' '),
-		        iconSize: new L.Point(70, 70),
-		        iconAnchor: new L.Point(35, 100),
-		        html: time + '<div class="subInfos">' + distance + ' m </div>'
-		    });
-			
-		    var marker = L.marker(destination, {icon: infos});
-		    
-		    map.addLayer(marker);
-
-		    // Draw route
-			var polyline = L.polyline(routeLatLng, {
-				className: ['route', rank].join(' '),
-				color: '#008200',
-				smoothFactor: 3.0,
-            	noClip: true,
-            	opacity: 1
-			}).addTo(map);
-
-        });
-
-		for (var i = 2; i >= 0; i--){ // Downwards to get shortest route on top
-			var infos = addInfos(toilets[i], i);
-			infos.polyline.addTo(drawables.closestGroup);
-			infos.marker.addTo(drawables.closestGroup);
-		}
+//////////////////////////
 
 
-		// Draw infos on closest toilets
-		drawables.closestGroup.addTo(map);
-		
 
-	}).catch(function(err){console.error(err)})
 
-	// Draw all toilets
-	drawables.toiletGroup.addTo(map);
 
-}).catch(function(err){console.error(err)})
+
 
 
 
