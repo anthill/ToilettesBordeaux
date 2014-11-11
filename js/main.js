@@ -153,7 +153,7 @@ function addClicBehaviour(list, position){
                     
                     updateClosest(drawables.singleGroup);
 
-                }).catch(function(err){console.error(err)})
+                }).catch(function(err){console.error(err);});
         });
     });
 }
@@ -352,7 +352,7 @@ function findClosest(list, position){
         // Draw infos on closest toilets
         updateClosest(drawables.closestGroup, bounds);
 
-    }).catch(function(err){console.error(err)})
+    }).catch(function(err){console.error(err);});
 }
 
 
@@ -420,7 +420,7 @@ Promise.all([toilettesP, position])
 
         findClosest(toilettes, position);
     })
-    .catch(function(err){console.error(err);})
+    .catch(function(err){console.error(err);});
 
 //////////////////////////
 

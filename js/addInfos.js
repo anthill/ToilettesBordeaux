@@ -1,4 +1,5 @@
-'use strict'        
+'use strict';
+var L = require('leaflet');
 
 module.exports = function(toilet, index){
     console.log('Les plus proches: ', toilet);
@@ -6,7 +7,7 @@ module.exports = function(toilet, index){
     var rank = '';
     var color = '#000000';
 
-    if (index == 2){
+    if (index === 2){
         rank += 'first';
         color = '#008200';
     }
@@ -46,7 +47,7 @@ module.exports = function(toilet, index){
     });
     
     var marker = L.marker(destination, {icon: infos});
-    
+
     // Draw route
     var polyline = L.polyline(routeLatLng, {
         className: ['route', rank].join(' '),
@@ -60,4 +61,4 @@ module.exports = function(toilet, index){
         polyline: polyline,
         marker: marker
     };
-}
+};
