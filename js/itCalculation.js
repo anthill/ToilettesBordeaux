@@ -1,4 +1,4 @@
-'use strict'
+'use strict';
 
 function calcRoute(startLocation, endLocation) {    
     var directionsService = new google.maps.DirectionsService();
@@ -7,33 +7,33 @@ function calcRoute(startLocation, endLocation) {
     var request = {
         origin: startLocation,
         destination: endLocation,
-        travelMode: mode,
+        travelMode: mode
     };
 
     return new Promise(function(resolve, reject){
-		directionsService.route(request, function(response, status) {
-	    	console.log('status ', status);
+        directionsService.route(request, function(response, status) {
+            console.log('status ', status);
 
-	    	if (status === google.maps.DirectionsStatus.OK) {
-	    		console.log('response ', response);
-				resolve(response);
-	      	}
-	      	else {
-	      		reject(status);
-	      	}
-	    });
+            if (status === google.maps.DirectionsStatus.OK) {
+                console.log('response ', response);
+                resolve(response);
+            }
+            else {
+                reject(status);
+            }
+        });
     });
 }
 
 module.exports = function(start, end) {
-	var startLocation = new google.maps.LatLng(start.lat,start.lng);
-	var endLocation = new google.maps.LatLng(end.lat,end.lng);
+    var startLocation = new google.maps.LatLng(start.lat,start.lng);
+    var endLocation = new google.maps.LatLng(end.lat,end.lng);
 
-	var route = calcRoute(startLocation, endLocation);
+    var route = calcRoute(startLocation, endLocation);
 
-	return route;
-	// return {
-	// 	result: route,
-	// 	toilet: end
-	// };
+    return route;
+    // return {
+    // 	result: route,
+    // 	toilet: end
+    // };
 };

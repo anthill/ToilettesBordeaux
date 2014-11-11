@@ -1,7 +1,5 @@
 'use strict';
 
-var L = require('leaflet');
-
 module.exports = function(f){
 
 	return new Promise(function(resolve, reject){

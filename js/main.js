@@ -3,16 +3,16 @@
 var L = require('leaflet');
 var geo = require('./geolocation.js');
 var itinerary = require('./itCalculation.js');
-var getToilets = require('./getToilets.js');
+var getToilets = require('./getJSON.js');
 var addInfos = require('./addInfos.js');
 var U = require('./utilities.js');
 
 // set map options
 var BORDEAUX_COORDS = [44.84, -0.57];
 var map = L.map('map', {
-	center: BORDEAUX_COORDS,
-	zoom: 12,
-	minZoom: 12 // minZoom is set b/c there is no sense to zoom out of Bordeaux
+    center: BORDEAUX_COORDS,
+    zoom: 12,
+    minZoom: 12 // minZoom is set b/c there is no sense to zoom out of Bordeaux
 });
 
 map.setMaxBounds(map.getBounds()); // MaxBounds are set because there is no sense to pan out of Bordeaux
@@ -22,119 +22,119 @@ L.tileLayer('http://api.tiles.mapbox.com/v3/ourson.k0i572pc/{z}/{x}/{y}.png', {
 }).addTo(map);
 
 var typologieToCSSClass = {
-	"Urinoir": "urinoir",
-	"Sanitaire automatique": "sanitaire",
-	"Sanitaire automatique avec urinoir": "sanitaire",
-	"Chalet de nécessité": "sanitaire",
+    "Urinoir": "urinoir",
+    "Sanitaire automatique": "sanitaire",
+    "Sanitaire automatique avec urinoir": "sanitaire",
+    "Chalet de nécessité": "sanitaire",
 };
 
 var iconMap = {
-	"urinoir" : "male",
-	"sanitaire": "female",
-	"handicap": "wheelchair",
+    "urinoir" : "male",
+    "sanitaire": "female",
+    "handicap": "wheelchair",
 };
 
 var filterMap = {
-	"urinoir-filter" : "urinoir",
-	"sanitaire-filter": "sanitaire",
-	"handi-filter": "handicap",
+    "urinoir-filter" : "urinoir",
+    "sanitaire-filter": "sanitaire",
+    "handi-filter": "handicap",
 };
 
 var drawables = {
-	user: undefined,
-	singleGroup: L.layerGroup(),
-	closestGroup: L.layerGroup(),
-	urinoirGroup: L.layerGroup(),
-	sanitaireGroup: L.layerGroup(),
-	handiGroup: L.layerGroup(),
-	toiletGroup: L.layerGroup()
+    user: undefined,
+    singleGroup: L.layerGroup(),
+    closestGroup: L.layerGroup(),
+    urinoirGroup: L.layerGroup(),
+    sanitaireGroup: L.layerGroup(),
+    handiGroup: L.layerGroup(),
+    toiletGroup: L.layerGroup()
 };
 
 // Get user position
 function updatePosition(position){
- 	var latitude  = position.coords.latitude;
-	var longitude = position.coords.longitude;
+    var latitude  = position.coords.latitude;
+    var longitude = position.coords.longitude;
 
-	var icon = L.divIcon({
-	        className: "user",
-	        iconSize: new L.Point(72, 72),
-		    iconAnchor: new L.Point(36, 36),
-	        html: '<span class="fa-stack fa-lg fa-3x"><i class="fa fa-circle fa-stack-1x"></i><i class="fa fa-bullseye fa-stack-1x"></i></span>'
-	    });
+    var icon = L.divIcon({
+            className: "user",
+            iconSize: new L.Point(72, 72),
+            iconAnchor: new L.Point(36, 36),
+            html: '<span class="fa-stack fa-lg fa-3x"><i class="fa fa-circle fa-stack-1x"></i><i class="fa fa-bullseye fa-stack-1x"></i></span>'
+        });
 
-	var marker;
+    var marker;
 
-	if(marker)
-		map.removeLayer(marker);
+    if(marker)
+        map.removeLayer(marker);
 
-	marker = L.marker([latitude, longitude], {icon: icon});
-	drawables.user = marker;
+    marker = L.marker([latitude, longitude], {icon: icon});
+    drawables.user = marker;
 
-	// Add click event on user position
-	marker.addEventListener('click', function(){
-	    drawables.singleGroup.clearLayers();
-	    updateClosest(drawables.closestGroup);
-	});
+    // Add click event on user position
+    marker.addEventListener('click', function(){
+        drawables.singleGroup.clearLayers();
+        updateClosest(drawables.closestGroup);
+    });
 
-	updateClosest(marker);
+    updateClosest(marker);
 
-	return {
-		lat: latitude,
-		lng: longitude
-	};
+    return {
+        lat: latitude,
+        lng: longitude
+    };
 }
 
 function displayModes(){
 
-	map.removeLayer(drawables.toiletGroup);
-	map.removeLayer(drawables.handiGroup);
-	map.removeLayer(drawables.urinoirGroup);
-	map.removeLayer(drawables.sanitaireGroup);
+    map.removeLayer(drawables.toiletGroup);
+    map.removeLayer(drawables.handiGroup);
+    map.removeLayer(drawables.urinoirGroup);
+    map.removeLayer(drawables.sanitaireGroup);
 
-	modes.forEach(function(mode){
-		switch (mode) {
-			case 'urinoir':
-				console.log('mode ', mode);
-				drawables.urinoirGroup.addTo(map);
-				break;
-			case 'sanitaire':
-				console.log('mode ', mode);
-				drawables.sanitaireGroup.addTo(map);
-				break;
-			case 'handicap':
-				console.log('mode ', mode);
-				drawables.handiGroup.addTo(map);
-				break;
-			default:
-				drawables.toiletGroup.addTo(map);
-				break;
-		}
-	});
+    modes.forEach(function(mode){
+        switch (mode) {
+            case 'urinoir':
+                console.log('mode ', mode);
+                drawables.urinoirGroup.addTo(map);
+                break;
+            case 'sanitaire':
+                console.log('mode ', mode);
+                drawables.sanitaireGroup.addTo(map);
+                break;
+            case 'handicap':
+                console.log('mode ', mode);
+                drawables.handiGroup.addTo(map);
+                break;
+            default:
+                drawables.toiletGroup.addTo(map);
+                break;
+        }
+    });
 }
 
 function setMarker(toilet){
-	// Add icons from FontAwesome
-	var myHtml = '';
-	var groups = [drawables.toiletGroup];
+    // Add icons from FontAwesome
+    var myHtml = '';
+    var groups = [drawables.toiletGroup];
 
-	if (toilet.class == 'sanitaire') {
-		myHtml += '<i class="fa fa-female"></i><i class="fa fa-male"></i>\n';
-		groups.push(drawables.sanitaireGroup);
-	}
-	else {
-		myHtml += '<i class="fa fa-male urinoir"></i>\n';
-		groups.push(drawables.urinoirGroup);
-	}
-	
-	if (toilet.handicap == true){
-		myHtml += '<div class="pins"><i class="fa fa-fw fa-wheelchair"></i></div>\n';
-		groups.push(drawables.handiGroup);
-	} 
+    if (toilet.class == 'sanitaire') {
+        myHtml += '<i class="fa fa-female"></i><i class="fa fa-male"></i>\n';
+        groups.push(drawables.sanitaireGroup);
+    }
+    else {
+        myHtml += '<i class="fa fa-male urinoir"></i>\n';
+        groups.push(drawables.urinoirGroup);
+    }
+    
+    if (toilet.handicap == true){
+        myHtml += '<div class="pins"><i class="fa fa-fw fa-wheelchair"></i></div>\n';
+        groups.push(drawables.handiGroup);
+    } 
 
-	var icon = L.divIcon({
+    var icon = L.divIcon({
         className: "icon",
         iconSize: new L.Point(46, 46),
-	    iconAnchor: new L.Point(23, 23),
+        iconAnchor: new L.Point(23, 23),
         html: myHtml
     });
 
@@ -143,222 +143,222 @@ function setMarker(toilet){
 }
 
 function addClicBehaviour(list, position){
-	list.forEach(function(toilette){
+    list.forEach(function(toilette){
 
         // Add click event on toilet
-	    toilette.marker.addEventListener('click', function(){
-	    	map.removeLayer(drawables.closestGroup);
-	    	drawables.singleGroup.clearLayers();
+        toilette.marker.addEventListener('click', function(){
+            map.removeLayer(drawables.closestGroup);
+            drawables.singleGroup.clearLayers();
 
-			itinerary(position, toilette)
-				.then(function(result){
-					var infos = addInfos(result, 1);
+            itinerary(position, toilette)
+                .then(function(result){
+                    var infos = addInfos(result, 1);
 
-					infos.polyline.addTo(drawables.singleGroup);
-					infos.marker.addTo(drawables.singleGroup);
-					
-					updateClosest(drawables.singleGroup);
+                    infos.polyline.addTo(drawables.singleGroup);
+                    infos.marker.addTo(drawables.singleGroup);
+                    
+                    updateClosest(drawables.singleGroup);
 
-				}).catch(function(err){console.error(err)})
-		});
+                }).catch(function(err){console.error(err)})
+        });
     });
 }
 
 function calculateBounds(lats, lngs){
-	// Fits the map so all shortest routes are displayed
-	var north = U.getMaxOfArray(lats),
-		south = U.getMinOfArray(lats),
-		east = U.getMaxOfArray(lngs),
-		west = U.getMinOfArray(lngs);
+    // Fits the map so all shortest routes are displayed
+    var north = U.getMaxOfArray(lats),
+        south = U.getMinOfArray(lats),
+        east = U.getMaxOfArray(lngs),
+        west = U.getMinOfArray(lngs);
 
-	console.log("north ", north);
-	var southWest = L.latLng(south, west),
-    	northEast = L.latLng(north, east);
+    console.log("north ", north);
+    var southWest = L.latLng(south, west),
+        northEast = L.latLng(north, east);
 
     return L.latLngBounds(southWest, northEast);
 }
 
 function updateClosest(item, boundaries){
-	if (boundaries){
-		map.fitBounds(boundaries, {
-			paddingTopLeft: [0, 110],
-			paddingBottomRight: [0, 50]
-		});
-	}
+    if (boundaries){
+        map.fitBounds(boundaries, {
+            paddingTopLeft: [0, 110],
+            paddingBottomRight: [0, 50]
+        });
+    }
 
-	map.removeLayer(drawables.closestGroup);
-	map.removeLayer(drawables.singleGroup);
+    map.removeLayer(drawables.closestGroup);
+    map.removeLayer(drawables.singleGroup);
 
-	item.addTo(map);
+    item.addTo(map);
 }
 
 function filterToilets(list, types){
-	var filtered = [];
+    var filtered = [];
 
-	list.forEach(function(toilette){
-		if (types.indexOf(toilette.class) != -1){
-			filtered.push(toilette);
-		}
-		if ((types.indexOf('handicap') != -1) && toilette.handicap){
-			if (filtered.indexOf(toilette) === -1){ // check if toilette isn't already added
-				filtered.push(toilette);
-			}	
-		}
-	});
+    list.forEach(function(toilette){
+        if (types.indexOf(toilette.class) != -1){
+            filtered.push(toilette);
+        }
+        if ((types.indexOf('handicap') != -1) && toilette.handicap){
+            if (filtered.indexOf(toilette) === -1){ // check if toilette isn't already added
+                filtered.push(toilette);
+            }   
+        }
+    });
 
     return filtered;
 }
 
 function deactivateMode(dom){
-	dom.className = 'filter inactive';
+    dom.className = 'filter inactive';
 
-	var index = modes.indexOf(filterMap[dom.id]);
-	if (index > -1){
-		modes.splice(index, 1);
-		displayModes();
+    var index = modes.indexOf(filterMap[dom.id]);
+    if (index > -1){
+        modes.splice(index, 1);
+        displayModes();
 
-		if (modes.length === 0){
-			activateAllModes(modes);
-		}
-	}
+        if (modes.length === 0){
+            activateAllModes(modes);
+        }
+    }
 }
 
 function activateMode(dom){
-	dom.className = 'filter active';
-	var id = dom.id;
-	modes.push(filterMap[id]);
-	displayModes();
+    dom.className = 'filter active';
+    var id = dom.id;
+    modes.push(filterMap[id]);
+    displayModes();
 }
 
 function activateAllModes(){
-	modes = ['urinoir', 'sanitaire', 'handicap'];
-	filterButtons[0].className = 'filter active';
-	filterButtons[1].className = 'filter active';
-	filterButtons[2].className = 'filter active';
-	displayModes();
+    modes = ['urinoir', 'sanitaire', 'handicap'];
+    filterButtons[0].className = 'filter active';
+    filterButtons[1].className = 'filter active';
+    filterButtons[2].className = 'filter active';
+    displayModes();
 }
 
 function deactivateAllModes(){
-	modes = [];
-	filterButtons[0].className = 'filter inactive';
-	filterButtons[1].className = 'filter inactive';
-	filterButtons[2].className = 'filter inactive';
+    modes = [];
+    filterButtons[0].className = 'filter inactive';
+    filterButtons[1].className = 'filter inactive';
+    filterButtons[2].className = 'filter inactive';
 }
 
 
 function addClicFilter(toilettes, position){
-	// // for each doesn't seem to work with an array of DOM elements...
-	// filterButtons.forEach(function(){
-	// 	console.log('test');
-	// });
+    // // for each doesn't seem to work with an array of DOM elements...
+    // filterButtons.forEach(function(){
+    //  console.log('test');
+    // });
 
-	// For 'urinoir'
-	filterButtons[0].addEventListener('click', function(){
-		if (modes.length === 3){ // if all is selected (default), click selects rather than deselects
-			deactivateAllModes();
-			activateMode(this);
-		}
-		else {
-			if (this.className === 'filter active'){
-				deactivateMode(this);
-			}
-			else {
-				activateMode(this);
-			}
-		}
+    // For 'urinoir'
+    filterButtons[0].addEventListener('click', function(){
+        if (modes.length === 3){ // if all is selected (default), click selects rather than deselects
+            deactivateAllModes();
+            activateMode(this);
+        }
+        else {
+            if (this.className === 'filter active'){
+                deactivateMode(this);
+            }
+            else {
+                activateMode(this);
+            }
+        }
 
-		var selection = filterToilets(toilettes, modes);
-		findClosest(selection, position);
-	});
+        var selection = filterToilets(toilettes, modes);
+        findClosest(selection, position);
+    });
 
-	// For 'sanitaire'
-	filterButtons[1].addEventListener('click', function(){
-		if (modes.length === 3){ // if all is selected (default), click selects rather than deselects
-			deactivateAllModes();
-			activateMode(this);
-		}
-		else {
-			if (this.className === 'filter active'){
-				deactivateMode(this);
-			}
-			else {
-				activateMode(this);
-			}
-		}
-		
-		var selection = filterToilets(toilettes, modes);
-		findClosest(selection, position);
-	});
+    // For 'sanitaire'
+    filterButtons[1].addEventListener('click', function(){
+        if (modes.length === 3){ // if all is selected (default), click selects rather than deselects
+            deactivateAllModes();
+            activateMode(this);
+        }
+        else {
+            if (this.className === 'filter active'){
+                deactivateMode(this);
+            }
+            else {
+                activateMode(this);
+            }
+        }
+        
+        var selection = filterToilets(toilettes, modes);
+        findClosest(selection, position);
+    });
 
-	// For 'handi'
-	filterButtons[2].addEventListener('click', function(){
-		if (modes.length === 3){ // if all is selected (default), click selects rather than deselects
-			deactivateAllModes();
-			activateMode(this);
-		}
-		else {
-			if (this.className === 'filter active'){
-				deactivateMode(this);
-			}
-			else {
-				activateMode(this);
-			}
-		}
+    // For 'handi'
+    filterButtons[2].addEventListener('click', function(){
+        if (modes.length === 3){ // if all is selected (default), click selects rather than deselects
+            deactivateAllModes();
+            activateMode(this);
+        }
+        else {
+            if (this.className === 'filter active'){
+                deactivateMode(this);
+            }
+            else {
+                activateMode(this);
+            }
+        }
 
-		var selection = filterToilets(toilettes, modes);
-		findClosest(selection, position);
-	});
+        var selection = filterToilets(toilettes, modes);
+        findClosest(selection, position);
+    });
 }
 
 function findClosest(list, position){
 
-	drawables.singleGroup.clearLayers();
-	drawables.closestGroup.clearLayers();
+    drawables.singleGroup.clearLayers();
+    drawables.closestGroup.clearLayers();
 
-	list.forEach(function(toilette){
+    list.forEach(function(toilette){
         // Calculate rough distance b/w user and toilet
         toilette.d = Math.hypot(toilette.lat - position.lat, toilette.lng - position.lng);
     });
     
-	list.sort(function (a, b) {
-		return (a.d - b.d);
-	});
+    list.sort(function (a, b) {
+        return (a.d - b.d);
+    });
 
     var closestToilettes = list.slice(0, 3);
     
-	var closestLats = closestToilettes.map(function(t){return t.lat;}),
-		closestLngs = closestToilettes.map(function(t){return t.lng;});
+    var closestLats = closestToilettes.map(function(t){return t.lat;}),
+        closestLngs = closestToilettes.map(function(t){return t.lng;});
 
-	closestLats.push(position.lat);
-	closestLngs.push(position.lng);
+    closestLats.push(position.lat);
+    closestLngs.push(position.lng);
 
-	// console.log('list ', list);
-	// console.log('position ', position);
+    // console.log('list ', list);
+    // console.log('position ', position);
 
-	var itinerariesPs = closestToilettes.map(function(t){ return itinerary(position, t); });
+    var itinerariesPs = closestToilettes.map(function(t){ return itinerary(position, t); });
     
     var bounds = calculateBounds(closestLats, closestLngs);
 
     // When all itineraries are computed
     Promise.all(itinerariesPs).then(function(toilets){
 
-		toilets.sort(function (a, b) {
-			return -(a.routes[0].legs[0].distance.value - b.routes[0].legs[0].distance.value);
-		});
+        toilets.sort(function (a, b) {
+            return -(a.routes[0].legs[0].distance.value - b.routes[0].legs[0].distance.value);
+        });
 
-		// Calculate itineraries for 3 closest toilets
-		toilets.forEach(function(toilet, i){
+        // Calculate itineraries for 3 closest toilets
+        toilets.forEach(function(toilet, i){
 
-			var infos = addInfos(toilet, i);
-			infos.polyline.addTo(drawables.closestGroup);
-			infos.marker.addTo(drawables.closestGroup);
+            var infos = addInfos(toilet, i);
+            infos.polyline.addTo(drawables.closestGroup);
+            infos.marker.addTo(drawables.closestGroup);
 
         });
 
-		// Draw infos on closest toilets
-		updateClosest(drawables.closestGroup, bounds);
+        // Draw infos on closest toilets
+        updateClosest(drawables.closestGroup, bounds);
 
-	}).catch(function(err){console.error(err)})
+    }).catch(function(err){console.error(err)})
 }
 
 
@@ -371,21 +371,21 @@ var toilettesP = getToilets('data/toilettes.json')
         console.log('raw', data);
         
         return data["d"].map(function(t){
-        	var test = typologieToCSSClass[t["typologie"]];
-        	var option = t["options"] ? true: false;
-        	if (!test)
-        		console.error(t);
-        	else {
-        		return {
-	                lng: parseFloat(t["x_long"]),
-	                lat: parseFloat(t["y_lat"]),
-	                nom: t["nom"],
-	                // typologie: t["typologie"],
-	                class: typologieToCSSClass[t["typologie"]],
-	                handicap: option,
-	                marker: undefined
-            	};
-        	}
+            var test = typologieToCSSClass[t["typologie"]];
+            var option = t["options"] ? true: false;
+            if (!test)
+                console.error(t);
+            else {
+                return {
+                    lng: parseFloat(t["x_long"]),
+                    lat: parseFloat(t["y_lat"]),
+                    nom: t["nom"],
+                    // typologie: t["typologie"],
+                    class: typologieToCSSClass[t["typologie"]],
+                    handicap: option,
+                    marker: undefined
+                };
+            }
         });
     });
 
@@ -393,18 +393,18 @@ var modes = ['urinoir', 'sanitaire', 'handicap'];
 
 // render points on map regardless of geolocation
 toilettesP
-	.then(function(toilettes){
-	    toilettes.forEach(function(element){
-			var groups = setMarker(element);
+    .then(function(toilettes){
+        toilettes.forEach(function(element){
+            var groups = setMarker(element);
 
-			groups.forEach(function(group){
-				element.marker.addTo(group);
-			});
-			
-		});
-	    
-	    displayModes();
-	});
+            groups.forEach(function(group){
+                element.marker.addTo(group);
+            });
+            
+        });
+        
+        displayModes();
+    });
 
 
 // var closestUrinoirs = undefined;
@@ -416,20 +416,19 @@ var filterButtons = document.getElementsByClassName('filter');
 
 // When user and toilet positions are available:
 Promise.all([toilettesP, position])
-	.then(function(values){
-		var toilettes = values[0],
-			position = values[1];
+    .then(function(values){
+        var toilettes = values[0],
+            position = values[1];
 
-		addClicFilter(toilettes, position);
+        addClicFilter(toilettes, position);
 
-		addClicBehaviour(toilettes, position);
+        addClicBehaviour(toilettes, position);
 
-		findClosest(toilettes, position);
-	})
-	.catch(function(err){console.error(err)})
+        findClosest(toilettes, position);
+    })
+    .catch(function(err){console.error(err)})
 
 //////////////////////////
-
 
 
 
