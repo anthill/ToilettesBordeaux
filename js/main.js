@@ -25,17 +25,11 @@ var typologieToCSSClass = {
     "Urinoir": "urinoir",
     "Sanitaire automatique": "sanitaire",
     "Sanitaire automatique avec urinoir": "sanitaire",
-    "Chalet de nécessité": "sanitaire",
-};
-
-var iconMap = {
-    "urinoir" : "male",
-    "sanitaire": "female",
-    "handicap": "wheelchair",
+    "Chalet de nécessité": "sanitaire"
 };
 
 var filterMap = {
-    "urinoir-filter" : "urinoir",
+    "urinoir-filter": "urinoir",
     "sanitaire-filter": "sanitaire",
     "handi-filter": "handicap",
 };
@@ -117,7 +111,7 @@ function setMarker(toilet){
     var myHtml = '';
     var groups = [drawables.toiletGroup];
 
-    if (toilet.class == 'sanitaire') {
+    if (toilet.class === 'sanitaire') {
         myHtml += '<i class="fa fa-female"></i><i class="fa fa-male"></i>\n';
         groups.push(drawables.sanitaireGroup);
     }
@@ -126,7 +120,7 @@ function setMarker(toilet){
         groups.push(drawables.urinoirGroup);
     }
     
-    if (toilet.handicap == true){
+    if (toilet.handicap === true){
         myHtml += '<div class="pins"><i class="fa fa-fw fa-wheelchair"></i></div>\n';
         groups.push(drawables.handiGroup);
     } 
@@ -196,10 +190,10 @@ function filterToilets(list, types){
     var filtered = [];
 
     list.forEach(function(toilette){
-        if (types.indexOf(toilette.class) != -1){
+        if (types.indexOf(toilette.class) !== -1){
             filtered.push(toilette);
         }
-        if ((types.indexOf('handicap') != -1) && toilette.handicap){
+        if ((types.indexOf('handicap') !== -1) && toilette.handicap){
             if (filtered.indexOf(toilette) === -1){ // check if toilette isn't already added
                 filtered.push(toilette);
             }   
@@ -426,7 +420,7 @@ Promise.all([toilettesP, position])
 
         findClosest(toilettes, position);
     })
-    .catch(function(err){console.error(err)})
+    .catch(function(err){console.error(err);})
 
 //////////////////////////
 
