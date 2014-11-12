@@ -11,6 +11,7 @@ function activateToiletSelection(list, position){
 		toilette.marker.addEventListener('click', function(){
 			itinerary(position, toilette)
 				.then(function(result){
+					// map.removeLayer(map.drawables.singleGroup);
 					map.drawables.singleGroup.clearLayers();
 					
 					var infos = addInfos(result, 1);
@@ -27,6 +28,7 @@ function activateToiletSelection(list, position){
 
 function find3Closests(list, position){
 
+	// map.removeLayer(map.drawables.singleGroup);
 	map.drawables.singleGroup.clearLayers();
 	map.drawables.closestGroup.clearLayers();
 

@@ -12,7 +12,7 @@ var filterMap = {
 var filterButtons = document.getElementsByClassName('filter');
 
 
-module.exports = function(){
+module.exports = function(drawables){
 	// function deactivate(dom, modes){
 	// 	dom.className = 'filter inactive';
 
@@ -31,7 +31,7 @@ module.exports = function(){
 		dom.className = 'filter active';
 		var id = dom.id;
 		modes.push(filterMap[id]);
-		displayModes(modes);
+		displayModes(modes, drawables);
 
 		return modes;
 	}
@@ -41,7 +41,7 @@ module.exports = function(){
 		filterButtons[0].className = 'filter active';
 		filterButtons[1].className = 'filter active';
 		filterButtons[2].className = 'filter active';
-		displayModes(modes);
+		displayModes(modes, drawables);
 
 		return modes;
 	}

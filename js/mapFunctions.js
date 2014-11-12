@@ -3,23 +3,11 @@
 var L = require('leaflet');
 var U = require('./utilities.js');
 
+var map = require('./initializeMap.js');
 
-var BORDEAUX_COORDS = [44.84, -0.57];
-
-// set map options
-var map = L.map('map', {
-	center: BORDEAUX_COORDS,
-	zoom: 12,
-	minZoom: 12 // minZoom is set b/c there is no sense to zoom out of Bordeaux
-});
-
-map.setMaxBounds(map.getBounds()); // MaxBounds are set because there is no sense to pan out of Bordeaux
-
-L.tileLayer('http://api.tiles.mapbox.com/v3/ourson.k0i572pc/{z}/{x}/{y}.png', {
-	attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-}).addTo(map);
 
 module.exports = function(){
+
 
 	var drawables = {
 		user: undefined,
@@ -39,7 +27,6 @@ module.exports = function(){
 				paddingBottomRight: [0, 50]
 			});
 		}
-
 		map.removeLayer(drawables.closestGroup);
 		map.removeLayer(drawables.singleGroup);
 
@@ -90,7 +77,7 @@ module.exports = function(){
 		return groups;
 	}
 
-	function displayModes(modes){
+	function displayModes(modes, drawables){
 
 		map.removeLayer(drawables.toiletGroup);
 		map.removeLayer(drawables.handiGroup);
@@ -140,7 +127,6 @@ module.exports = function(){
 
 		// Add click event on user position
 		marker.addEventListener('click', function(){
-			console.log('DISPLAY');
 			drawables.singleGroup.clearLayers();
 			displayItinerary(drawables.closestGroup);
 		});
