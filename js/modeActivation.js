@@ -87,12 +87,13 @@ module.exports = function(){
 	            modes = activate(this, modes);
 	        }
 	        else {
-	            if (this.className === 'filter active'){
-	                modes = deactivate(this, modes);
-	            }
-	            else {
-	                modes = activate(this, modes);
-	            }
+	        	modes = activateAll(modes);
+	            // if (this.className === 'filter active'){
+	            //     modes = deactivate(this, modes);
+	            // }
+	            // else {
+	            //     modes = activate(this, modes);
+	            // }
 	        }
 
 	        var selection = filterToilets(toilettes, modes);
@@ -106,12 +107,13 @@ module.exports = function(){
 	            modes = activate(this, modes);
 	        }
 	        else {
-	            if (this.className === 'filter active'){
-	                modes = deactivate(this, modes);
-	            }
-	            else {
-	                modes = activate(this, modes);
-	            }
+	        	modes = activateAll(modes);
+	            // if (this.className === 'filter active'){
+	            //     modes = deactivate(this, modes);
+	            // }
+	            // else {
+	            //     modes = activate(this, modes);
+	            // }
 	        }
 	        
 	        var selection = filterToilets(toilettes, modes);
@@ -125,12 +127,13 @@ module.exports = function(){
 	            modes = activate(this, modes);
 	        }
 	        else {
-	            if (this.className === 'filter active'){
-	                modes = deactivate(this, modes);
-	            }
-	            else {
-	                modes = activate(this, modes);
-	            }
+	        	modes = activateAll(modes);
+	            // if (this.className === 'filter active'){
+	            //     modes = deactivate(this, modes);
+	            // }
+	            // else {
+	            //     modes = activate(this, modes);
+	            // }
 	        }
 
 	        var selection = filterToilets(toilettes, modes);
