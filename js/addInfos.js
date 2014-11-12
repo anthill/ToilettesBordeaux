@@ -48,7 +48,7 @@ module.exports = function(toilet, index){
     
     var marker = L.marker(destination, {icon: infos});
 
-    // Draw route
+    // Create route
     var polyline = L.polyline(routeLatLng, {
         className: ['route', rank].join(' '),
         color: color,
