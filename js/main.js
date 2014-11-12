@@ -203,7 +203,7 @@ function filterToilets(list, types){
     return filtered;
 }
 
-function deactivateMode(dom){
+function deactivateMode(dom, modes){
     dom.className = 'filter inactive';
 
     var index = modes.indexOf(filterMap[dom.id]);
@@ -217,26 +217,32 @@ function deactivateMode(dom){
     }
 }
 
-function activateMode(dom){
+function activateMode(dom, modes){
     dom.className = 'filter active';
     var id = dom.id;
     modes.push(filterMap[id]);
     displayModes();
+
+    return modes;
 }
 
-function activateAllModes(){
+function activateAllModes(modes){
     modes = ['urinoir', 'sanitaire', 'handicap'];
     filterButtons[0].className = 'filter active';
     filterButtons[1].className = 'filter active';
     filterButtons[2].className = 'filter active';
     displayModes();
+
+    return modes;
 }
 
-function deactivateAllModes(){
+function deactivateAllModes(modes){
     modes = [];
     filterButtons[0].className = 'filter inactive';
     filterButtons[1].className = 'filter inactive';
     filterButtons[2].className = 'filter inactive';
+
+    return modes;
 }
 
 
