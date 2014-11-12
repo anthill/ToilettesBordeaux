@@ -23,8 +23,8 @@ module.exports = function(){
 	function displayItinerary(item, boundaries){
 		if (boundaries){
 			map.fitBounds(boundaries, {
-				paddingTopLeft: [0, 110],
-				paddingBottomRight: [0, 50]
+				paddingTopLeft: [10, 110],
+				paddingBottomRight: [10, 50]
 			});
 		}
 		map.removeLayer(drawables.closestGroup);

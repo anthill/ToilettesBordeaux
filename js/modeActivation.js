@@ -85,8 +85,9 @@ module.exports = function(drawables){
 				modes = deactivateAll(modes);
 				modes = activate(this, modes);
 			}
-			else {
-				modes = activateAll(modes);
+			else if (this.className === 'filter inactive'){
+				modes = deactivateAll(modes);
+				modes = activate(this, modes);
 				// if (this.className === 'filter active'){
 				//     modes = deactivate(this, modes);
 				// }
@@ -94,6 +95,10 @@ module.exports = function(drawables){
 				//     modes = activate(this, modes);
 				// }
 			}
+			else if (this.className === 'filter active'){
+				modes = activateAll(modes);
+			}
+
 
 			var selection = filterToilets(toilettes, modes);
 			find3Closests(selection, position);
@@ -105,14 +110,18 @@ module.exports = function(drawables){
 				modes = deactivateAll(modes);
 				modes = activate(this, modes);
 			}
-			else {
-				modes = activateAll(modes);
+			else if (this.className === 'filter inactive'){
+				modes = deactivateAll(modes);
+				modes = activate(this, modes);
 				// if (this.className === 'filter active'){
 				//     modes = deactivate(this, modes);
 				// }
 				// else {
 				//     modes = activate(this, modes);
 				// }
+			}
+			else if (this.className === 'filter active'){
+				modes = activateAll(modes);
 			}
 			
 			var selection = filterToilets(toilettes, modes);
@@ -125,14 +134,18 @@ module.exports = function(drawables){
 				modes = deactivateAll(modes);
 				modes = activate(this, modes);
 			}
-			else {
-				modes = activateAll(modes);
+			else if (this.className === 'filter inactive'){
+				modes = deactivateAll(modes);
+				modes = activate(this, modes);
 				// if (this.className === 'filter active'){
 				//     modes = deactivate(this, modes);
 				// }
 				// else {
 				//     modes = activate(this, modes);
 				// }
+			}
+			else if (this.className === 'filter active'){
+				modes = activateAll(modes);
 			}
 
 			var selection = filterToilets(toilettes, modes);
