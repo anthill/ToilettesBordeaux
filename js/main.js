@@ -2,7 +2,7 @@
 
 var geo = require('./geolocation.js');
 var getToilets = require('./getJSON.js');
-var map = require('./mapFunctions.js')();
+var mapF = require('./mapFunctions.js')();
 var activateToiletSelection = require('./findClosest.js').activateToiletSelection;
 var find3Closests = require('./findClosest.js').find3Closests;
 
@@ -48,7 +48,7 @@ var modes = ['urinoir', 'sanitaire', 'handicap'];
 toilettesP
 	.then(function(toilettes){
 		toilettes.forEach(function(element){
-			var groups = map.setMarker(element);
+			var groups = mapF.setMarker(element);
 
 			groups.forEach(function(group){
 				element.marker.addTo(group);
@@ -56,12 +56,12 @@ toilettesP
 			
 		});
 		
-		map.displayModes(modes, map.drawables);
+		mapF.displayModes(modes, mapF.drawables);
 	});
 
 
-var position = geo(map.updatePosition);
-var activateFilters = require('./modeActivation.js')(map.drawables);
+var position = geo(mapF.updatePosition);
+var activateFilters = require('./modeActivation.js')(mapF.drawables);
 
 // When user and toilet positions are available:
 Promise.all([toilettesP, position])

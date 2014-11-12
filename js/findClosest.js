@@ -1,5 +1,5 @@
 'use strict';
-var map = require('./mapFunctions.js')();
+var mapF = require('./mapFunctions.js')();
 var itinerary = require('./itCalculation.js');
 var addInfos = require('./addInfos.js');
 
@@ -11,15 +11,14 @@ function activateToiletSelection(list, position){
 		toilette.marker.addEventListener('click', function(){
 			itinerary(position, toilette)
 				.then(function(result){
-					// map.removeLayer(map.drawables.singleGroup);
-					map.drawables.singleGroup.clearLayers();
+					mapF.drawables.singleGroup.clearLayers();
 					
 					var infos = addInfos(result, 1);
 
-					infos.polyline.addTo(map.drawables.singleGroup);
-					infos.marker.addTo(map.drawables.singleGroup);
+					infos.polyline.addTo(mapF.drawables.singleGroup);
+					infos.marker.addTo(mapF.drawables.singleGroup);
 					
-					map.displayItinerary(map.drawables.singleGroup);
+					mapF.displayItinerary(mapF.drawables.singleGroup);
 
 				}).catch(function(err){console.error(err);});
 		});
@@ -28,9 +27,8 @@ function activateToiletSelection(list, position){
 
 function find3Closests(list, position){
 
-	// map.removeLayer(map.drawables.singleGroup);
-	map.drawables.singleGroup.clearLayers();
-	map.drawables.closestGroup.clearLayers();
+	mapF.drawables.singleGroup.clearLayers();
+	mapF.drawables.closestGroup.clearLayers();
 
 	list.forEach(function(toilette){
 		// Calculate rough distance b/w user and toilet
@@ -54,7 +52,7 @@ function find3Closests(list, position){
 
 	var itinerariesPs = closestToilettes.map(function(t){ return itinerary(position, t); });
 	
-	var bounds = map.calculateBounds(closestLats, closestLngs);
+	var bounds = mapF.calculateBounds(closestLats, closestLngs);
 
 	// When all itineraries are computed
 	Promise.all(itinerariesPs).then(function(toilets){
@@ -67,13 +65,13 @@ function find3Closests(list, position){
 		toilets.forEach(function(toilet, i){
 
 			var infos = addInfos(toilet, i);
-			infos.polyline.addTo(map.drawables.closestGroup);
-			infos.marker.addTo(map.drawables.closestGroup);
+			infos.polyline.addTo(mapF.drawables.closestGroup);
+			infos.marker.addTo(mapF.drawables.closestGroup);
 
 		});
 
 		// Draw infos on closest toilets
-		map.displayItinerary(map.drawables.closestGroup, bounds);
+		mapF.displayItinerary(mapF.drawables.closestGroup, bounds);
 
 	}).catch(function(err){console.error(err);});
 }
