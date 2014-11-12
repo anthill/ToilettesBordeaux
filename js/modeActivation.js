@@ -1,6 +1,6 @@
 'use filters';
 var displayModes = require('./mapFunctions.js')().displayModes;
-var findClosest = require('./findClosest.js');
+var find3Closests = require('./findClosest.js').find3Closests;
 
 var filterMap = {
     "urinoir-filter": "urinoir",
@@ -51,8 +51,6 @@ module.exports = function(){
 	    filterButtons[1].className = 'filter inactive';
 	    filterButtons[2].className = 'filter inactive';
 
-	    console.log('test modes ', modes);
-
 	    return modes;
 	}
 
@@ -97,7 +95,7 @@ module.exports = function(){
 	        }
 
 	        var selection = filterToilets(toilettes, modes);
-	        findClosest(selection, position);
+	        find3Closests(selection, position);
 	    });
 
 	    // For 'sanitaire'
@@ -117,7 +115,7 @@ module.exports = function(){
 	        }
 	        
 	        var selection = filterToilets(toilettes, modes);
-	        findClosest(selection, position);
+	        find3Closests(selection, position);
 	    });
 
 	    // For 'handi'
@@ -137,7 +135,7 @@ module.exports = function(){
 	        }
 
 	        var selection = filterToilets(toilettes, modes);
-	        findClosest(selection, position);
+	        find3Closests(selection, position);
 	    });
 	};
 

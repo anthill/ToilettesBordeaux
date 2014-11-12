@@ -4,7 +4,28 @@ var itinerary = require('./itCalculation.js');
 var addInfos = require('./addInfos.js');
 
 
-module.exports = function (list, position){
+function activateToiletSelection(list, position){
+    list.forEach(function(toilette){
+
+        // Add click event on toilet
+        toilette.marker.addEventListener('click', function(){
+            itinerary(position, toilette)
+                .then(function(result){
+                    map.drawables.singleGroup.clearLayers();
+                    
+                    var infos = addInfos(result, 1);
+
+                    infos.polyline.addTo(map.drawables.singleGroup);
+                    infos.marker.addTo(map.drawables.singleGroup);
+                    
+                    map.displayItinerary(map.drawables.singleGroup);
+
+                }).catch(function(err){console.error(err);});
+        });
+    });
+}
+
+function find3Closests(list, position){
 
     map.drawables.singleGroup.clearLayers();
     map.drawables.closestGroup.clearLayers();
@@ -53,4 +74,10 @@ module.exports = function (list, position){
         map.displayItinerary(map.drawables.closestGroup, bounds);
 
     }).catch(function(err){console.error(err);});
+}
+
+
+module.exports = {
+	activateToiletSelection: activateToiletSelection,
+	find3Closests: find3Closests
 }

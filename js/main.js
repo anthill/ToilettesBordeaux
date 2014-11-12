@@ -1,11 +1,11 @@
 'use strict';
 
-// var L = require('leaflet');
 var geo = require('./geolocation.js');
 var getToilets = require('./getJSON.js');
 var activateFilters = require('./modeActivation.js')();
 var map = require('./mapFunctions.js')();
-var findClosest = require('./findClosest.js');
+var activateToiletSelection = require('./findClosest.js').activateToiletSelection;
+var find3Closests = require('./findClosest.js').find3Closests;
 
 
 var typologieToCSSClass = {
@@ -15,27 +15,6 @@ var typologieToCSSClass = {
     "Chalet de nécessité": "sanitaire"
 };
 
-
-function activateToiletSelection(list, position){
-    list.forEach(function(toilette){
-
-        // Add click event on toilet
-        toilette.marker.addEventListener('click', function(){
-            itinerary(position, toilette)
-                .then(function(result){
-                    map.drawables.singleGroup.clearLayers();
-                    
-                    var infos = addInfos(result, 1);
-
-                    infos.polyline.addTo(map.drawables.singleGroup);
-                    infos.marker.addTo(map.drawables.singleGroup);
-                    
-                    map.displayItinerary(map.drawables.singleGroup);
-
-                }).catch(function(err){console.error(err);});
-        });
-    });
-}
 
 
 /// MAIN CODE
@@ -95,7 +74,7 @@ Promise.all([toilettesP, position])
 
         activateToiletSelection(toilettes, position);
 
-        findClosest(toilettes, position);
+        find3Closests(toilettes, position);
     })
     .catch(function(err){console.error(err);});
 

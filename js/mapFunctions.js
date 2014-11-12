@@ -140,6 +140,7 @@ module.exports = function(){
 
 	    // Add click event on user position
 	    marker.addEventListener('click', function(){
+	    	console.log('DISPLAY');
 	        drawables.singleGroup.clearLayers();
 	        displayItinerary(drawables.closestGroup);
 	    });
