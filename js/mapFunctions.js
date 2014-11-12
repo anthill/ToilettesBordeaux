@@ -8,149 +8,149 @@ var BORDEAUX_COORDS = [44.84, -0.57];
 
 // set map options
 var map = L.map('map', {
-    center: BORDEAUX_COORDS,
-    zoom: 12,
-    minZoom: 12 // minZoom is set b/c there is no sense to zoom out of Bordeaux
+	center: BORDEAUX_COORDS,
+	zoom: 12,
+	minZoom: 12 // minZoom is set b/c there is no sense to zoom out of Bordeaux
 });
 
 map.setMaxBounds(map.getBounds()); // MaxBounds are set because there is no sense to pan out of Bordeaux
 
 L.tileLayer('http://api.tiles.mapbox.com/v3/ourson.k0i572pc/{z}/{x}/{y}.png', {
-    attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+	attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
 }).addTo(map);
 
 module.exports = function(){
 
 	var drawables = {
-	    user: undefined,
-	    singleGroup: L.layerGroup(),
-	    closestGroup: L.layerGroup(),
-	    urinoirGroup: L.layerGroup(),
-	    sanitaireGroup: L.layerGroup(),
-	    handiGroup: L.layerGroup(),
-	    toiletGroup: L.layerGroup()
+		user: undefined,
+		singleGroup: L.layerGroup(),
+		closestGroup: L.layerGroup(),
+		urinoirGroup: L.layerGroup(),
+		sanitaireGroup: L.layerGroup(),
+		handiGroup: L.layerGroup(),
+		toiletGroup: L.layerGroup()
 	};
 
 
 	function displayItinerary(item, boundaries){
-	    if (boundaries){
-	        map.fitBounds(boundaries, {
-	            paddingTopLeft: [0, 110],
-	            paddingBottomRight: [0, 50]
-	        });
-	    }
+		if (boundaries){
+			map.fitBounds(boundaries, {
+				paddingTopLeft: [0, 110],
+				paddingBottomRight: [0, 50]
+			});
+		}
 
-	    map.removeLayer(drawables.closestGroup);
-	    map.removeLayer(drawables.singleGroup);
+		map.removeLayer(drawables.closestGroup);
+		map.removeLayer(drawables.singleGroup);
 
-	    item.addTo(map);
+		item.addTo(map);
 	}
 
 	function calculateBounds(lats, lngs){
-	    // Fits the map so all shortest routes are displayed
-	    var north = U.getMaxOfArray(lats),
-	        south = U.getMinOfArray(lats),
-	        east = U.getMaxOfArray(lngs),
-	        west = U.getMinOfArray(lngs);
+		// Fits the map so all shortest routes are displayed
+		var north = U.getMaxOfArray(lats),
+			south = U.getMinOfArray(lats),
+			east = U.getMaxOfArray(lngs),
+			west = U.getMinOfArray(lngs);
 
-	    console.log("north ", north);
-	    var southWest = L.latLng(south, west),
-	        northEast = L.latLng(north, east);
+		console.log("north ", north);
+		var southWest = L.latLng(south, west),
+			northEast = L.latLng(north, east);
 
-	    return L.latLngBounds(southWest, northEast);
+		return L.latLngBounds(southWest, northEast);
 	}
 
 	function setMarker(toilet){
-	    // Add icons from FontAwesome
-	    var myHtml = '';
-	    var groups = [drawables.toiletGroup];
+		// Add icons from FontAwesome
+		var myHtml = '';
+		var groups = [drawables.toiletGroup];
 
-	    if (toilet.class === 'sanitaire') {
-	        myHtml += '<i class="fa fa-female"></i><i class="fa fa-male"></i>\n';
-	        groups.push(drawables.sanitaireGroup);
-	    }
-	    else {
-	        myHtml += '<i class="fa fa-male urinoir"></i>\n';
-	        groups.push(drawables.urinoirGroup);
-	    }
-	    
-	    if (toilet.handicap === true){
-	        myHtml += '<div class="pins"><i class="fa fa-fw fa-wheelchair"></i></div>\n';
-	        groups.push(drawables.handiGroup);
-	    } 
+		if (toilet.class === 'sanitaire') {
+			myHtml += '<i class="fa fa-female"></i><i class="fa fa-male"></i>\n';
+			groups.push(drawables.sanitaireGroup);
+		}
+		else {
+			myHtml += '<i class="fa fa-male urinoir"></i>\n';
+			groups.push(drawables.urinoirGroup);
+		}
+		
+		if (toilet.handicap === true){
+			myHtml += '<div class="pins"><i class="fa fa-fw fa-wheelchair"></i></div>\n';
+			groups.push(drawables.handiGroup);
+		} 
 
-	    var icon = L.divIcon({
-	        className: "icon",
-	        iconSize: new L.Point(46, 46),
-	        iconAnchor: new L.Point(23, 23),
-	        html: myHtml
-	    });
+		var icon = L.divIcon({
+			className: "icon",
+			iconSize: new L.Point(46, 46),
+			iconAnchor: new L.Point(23, 23),
+			html: myHtml
+		});
 
-	    toilet.marker = L.marker([toilet.lat, toilet.lng], {icon: icon});
-	    return groups;
+		toilet.marker = L.marker([toilet.lat, toilet.lng], {icon: icon});
+		return groups;
 	}
 
 	function displayModes(modes){
 
-	    map.removeLayer(drawables.toiletGroup);
-	    map.removeLayer(drawables.handiGroup);
-	    map.removeLayer(drawables.urinoirGroup);
-	    map.removeLayer(drawables.sanitaireGroup);
+		map.removeLayer(drawables.toiletGroup);
+		map.removeLayer(drawables.handiGroup);
+		map.removeLayer(drawables.urinoirGroup);
+		map.removeLayer(drawables.sanitaireGroup);
 
-	    modes.forEach(function(mode){
-	        switch (mode) {
-	            case 'urinoir':
-	                console.log('mode ', mode);
-	                drawables.urinoirGroup.addTo(map);
-	                break;
-	            case 'sanitaire':
-	                console.log('mode ', mode);
-	                drawables.sanitaireGroup.addTo(map);
-	                break;
-	            case 'handicap':
-	                console.log('mode ', mode);
-	                drawables.handiGroup.addTo(map);
-	                break;
-	            default:
-	                drawables.toiletGroup.addTo(map);
-	                break;
-	        }
-	    });
+		modes.forEach(function(mode){
+			switch (mode) {
+				case 'urinoir':
+					console.log('mode ', mode);
+					drawables.urinoirGroup.addTo(map);
+					break;
+				case 'sanitaire':
+					console.log('mode ', mode);
+					drawables.sanitaireGroup.addTo(map);
+					break;
+				case 'handicap':
+					console.log('mode ', mode);
+					drawables.handiGroup.addTo(map);
+					break;
+				default:
+					drawables.toiletGroup.addTo(map);
+					break;
+			}
+		});
 	}
 
 	// Get user position
 	function updatePosition(position){
-	    var latitude  = position.coords.latitude;
-	    var longitude = position.coords.longitude;
+		var latitude  = position.coords.latitude;
+		var longitude = position.coords.longitude;
 
-	    var icon = L.divIcon({
-	            className: "user",
-	            iconSize: new L.Point(72, 72),
-	            iconAnchor: new L.Point(36, 36),
-	            html: '<span class="fa-stack fa-lg fa-3x"><i class="fa fa-circle fa-stack-1x"></i><i class="fa fa-bullseye fa-stack-1x"></i></span>'
-	        });
+		var icon = L.divIcon({
+				className: "user",
+				iconSize: new L.Point(72, 72),
+				iconAnchor: new L.Point(36, 36),
+				html: '<span class="fa-stack fa-lg fa-3x"><i class="fa fa-circle fa-stack-1x"></i><i class="fa fa-bullseye fa-stack-1x"></i></span>'
+			});
 
-	    var marker;
+		var marker;
 
-	    if(marker)
-	        map.removeLayer(marker);
+		if(marker)
+			map.removeLayer(marker);
 
-	    marker = L.marker([latitude, longitude], {icon: icon});
-	    drawables.user = marker;
+		marker = L.marker([latitude, longitude], {icon: icon});
+		drawables.user = marker;
 
-	    // Add click event on user position
-	    marker.addEventListener('click', function(){
-	    	console.log('DISPLAY');
-	        drawables.singleGroup.clearLayers();
-	        displayItinerary(drawables.closestGroup);
-	    });
+		// Add click event on user position
+		marker.addEventListener('click', function(){
+			console.log('DISPLAY');
+			drawables.singleGroup.clearLayers();
+			displayItinerary(drawables.closestGroup);
+		});
 
-	    marker.addTo(map);
+		marker.addTo(map);
 
-	    return {
-	        lat: latitude,
-	        lng: longitude
-	    };
+		return {
+			lat: latitude,
+			lng: longitude
+		};
 	}
 
 	return {
@@ -162,4 +162,4 @@ module.exports = function(){
 		updatePosition: updatePosition
 	};
 
-}
+};
