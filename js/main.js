@@ -2,9 +2,9 @@
 
 var geo = require('./geolocation.js');
 var getToilets = require('./getJSON.js');
-var mapF = require('./mapFunctions.js')();
-var activateToiletSelection = require('./findClosest.js').activateToiletSelection;
-var find3Closests = require('./findClosest.js').find3Closests;
+var findClosests = require('./findClosests.js');
+var activateFilters = require('./modeActivation.js')();
+var L = require('leaflet');
 
 
 var typologieToCSSClass = {
@@ -14,6 +14,42 @@ var typologieToCSSClass = {
 	"Chalet de nécessité": "sanitaire"
 };
 
+
+// Get user position
+function updatePosition(position){
+	var latitude  = position.coords.latitude;
+	var longitude = position.coords.longitude;
+
+	return {
+		lat: latitude,
+		lng: longitude
+	};
+}
+
+function setMarker(toilet){
+	// Add icons from FontAwesome
+	var myHtml = '';
+
+	if (toilet.class === 'sanitaire') {
+		myHtml += '<i class="fa fa-female"></i><i class="fa fa-male"></i>\n';
+	}
+	else {
+		myHtml += '<i class="fa fa-male urinoir"></i>\n';
+	}
+	
+	if (toilet.handicap === true){
+		myHtml += '<div class="pins"><i class="fa fa-fw fa-wheelchair"></i></div>\n';
+	} 
+
+	var icon = L.divIcon({
+		className: "icon",
+		iconSize: new L.Point(46, 46),
+		iconAnchor: new L.Point(23, 23),
+		html: myHtml
+	});
+
+	toilet.marker = L.marker([toilet.lat, toilet.lng], {icon: icon});
+}
 
 
 /// MAIN CODE
@@ -48,20 +84,11 @@ var modes = ['urinoir', 'sanitaire', 'handicap'];
 toilettesP
 	.then(function(toilettes){
 		toilettes.forEach(function(element){
-			var groups = mapF.setMarker(element);
-
-			groups.forEach(function(group){
-				element.marker.addTo(group);
-			});
-			
+			setMarker(element);
 		});
-		
-		mapF.displayModes(modes, mapF.drawables);
 	});
 
-
-var position = geo(mapF.updatePosition);
-var activateFilters = require('./modeActivation.js')(mapF.drawables);
+var position = geo(updatePosition);
 
 // When user and toilet positions are available:
 Promise.all([toilettesP, position])
@@ -71,8 +98,12 @@ Promise.all([toilettesP, position])
 
 		activateFilters(toilettes, position, modes);
 
-		activateToiletSelection(toilettes, position);
-
-		find3Closests(toilettes, position);
+		findClosests(toilettes, position);
+		
 	})
 	.catch(function(err){console.error(err);});
+
+
+
+
+
