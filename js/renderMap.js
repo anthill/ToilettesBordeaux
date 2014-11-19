@@ -7,9 +7,7 @@ var map = require('./initializeMap.js');
 var geo = require('./geolocation.js');
 var createInfos = require('./createInfos.js');
 var findClosests = require('./findClosests.js');
-var toiletMarkers = require('./setMarker.js');
-
-console.log('Markers ',toiletMarkers);
+var itinerary = require('./itCalculation.js');
 
 var toiletGroup = new L.LayerGroup();
 var userGroup = new L.LayerGroup();
@@ -28,15 +26,54 @@ function createUser(position){
 	return new L.Marker(position, {icon: icon});
 }
 
-function drawToilettes(list, position){
-	list.forEach(function(toilette){
-		toiletMarkers.set(toilette);
+function drawToilet(toilet){
+	// Add icons from FontAwesome
+	var myHtml = '';
 
-		toiletGroup.addLayer(toilette.marker).addTo(map);
+	if (toilet.class === 'sanitaire') {
+		myHtml += '<i class="fa fa-female"></i><i class="fa fa-male"></i>\n';
+	}
+	else {
+		myHtml += '<i class="fa fa-male urinoir"></i>\n';
+	}
+	
+	if (toilet.handicap === true){
+		myHtml += '<div class="pins"><i class="fa fa-fw fa-wheelchair"></i></div>\n';
+	} 
 
+	var icon = L.divIcon({
+		className: "icon",
+		iconSize: new L.Point(46, 46),
+		iconAnchor: new L.Point(23, 23),
+		html: myHtml
 	});
 
-	toiletMarkers.activate(list, position);
+	return L.marker([toilet.lat, toilet.lng], {icon: icon});
+	
+}
+
+function drawToilettes(list, position){
+	list.forEach(function(toilet){
+		var marker = drawToilet(toilet);
+
+		toiletGroup.addLayer(marker).addTo(map);
+		if(position){
+			marker.addEventListener('click', function(){
+
+				itinerary(position, toilet)
+					.then(function(result){
+
+						render({
+							toilettes: list,
+							position: position,
+							infos : [ createInfos(result, 1) ]
+						});
+
+					}).catch(function(err){console.error(err);});
+			});
+		}
+
+	});
 }
 
 function drawInfos(infos){
@@ -107,15 +144,15 @@ function fitBounds(infos, position){
 		lat: number
 	},
 	infos: [
-        {
-            marker: L.marker, 
-            polyline: L.polyline
-        }
+		{
+			marker: L.marker, 
+			polyline: L.polyline
+		}
 	]
 }
 */
 
-module.exports = function render(data){
+function render(data){
 
 	console.log('Data ', data);
 	
@@ -142,7 +179,7 @@ module.exports = function render(data){
 
 				});
 
-            infosGroup.clearLayers();
+			infosGroup.clearLayers();
 		});
 
 		// draw marker
@@ -150,14 +187,16 @@ module.exports = function render(data){
 	}
 	
 	// draw data.toilettes
-	if (data.toilettes){
-		toiletGroup.clearLayers();
-		drawToilettes(data.toilettes, data.position);
-	}
-    
-    if(Array.isArray(data.infos)){
-        drawInfos(data.infos);
-		fitBounds(data.infos, data.position);
-    }
 	
-};
+	toiletGroup.clearLayers();
+	drawToilettes(data.toilettes, data.position);
+	
+	
+	if(Array.isArray(data.infos)){
+		drawInfos(data.infos);
+		fitBounds(data.infos, data.position);
+	}
+	
+}
+
+module.exports = render;

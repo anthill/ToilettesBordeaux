@@ -3,11 +3,10 @@
 var geo = require('./geolocation.js');
 var getToilets = require('./getJSON.js');
 var findClosests = require('./findClosests.js');
-var toiletMarkers = require('./setMarker.js');
 var createInfos = require('./createInfos.js');
 var render = require('./renderMap.js');
 var activateFilters = require('./modeActivation.js');
-console.log('Markers ',toiletMarkers);
+
 var typologieToCSSClass = {
 	"Urinoir": "urinoir",
 	"Sanitaire automatique": "sanitaire",
@@ -48,10 +47,6 @@ var modes = ['urinoir', 'sanitaire', 'handicap'];
 // render points on map regardless of geolocation
 toilettesP
 	.then(function(toilettes){
-		toilettes.forEach(function(element){
-			toiletMarkers.set(element);
-		});
-    
         render({
             toilettes: toilettes,
             position: undefined,
@@ -68,7 +63,6 @@ Promise.all([toilettesP, positionP])
 			position = values[1];
 
 		activateFilters(toilettes, position, modes);
-		toiletMarkers.activate(toilettes, position);
 
 		findClosests(toilettes, position).then(function(itineraries){
 
