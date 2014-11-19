@@ -32,8 +32,4 @@ module.exports = function(start, end) {
     var route = calcRoute(startLocation, endLocation);
 
     return route;
-    // return {
-    // 	result: route,
-    // 	toilet: end
-    // };
 };

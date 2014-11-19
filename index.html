@@ -192,6 +192,51 @@
                 opacity: 1;
             }
 
+            #filter-box{
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                width: 60px;
+                height: 185px;
+                background-color: rgba(255, 255, 255, 1);
+                border-radius: 10px;
+                padding-top: 5px;
+                padding-bottom: 5px;
+            }
+
+            #filter-box > .filter{
+                position: relative;
+                margin: 10px auto 10px;
+                width: 45px;
+                height: 45px;
+                display: block;
+                font-size: 1.9em;
+                border-radius: 30%;
+            }
+
+            #handi-filter.filter{
+                width: 45px;
+                height: 45px;
+                font-size: 1.9em;
+                border-radius: 50%;
+            }
+
+            #handi-filter .fa-wheelchair{
+                left: 5px;
+                top: 7px;
+            }
+
+            #filter-box > .filter.active {
+                background-color: rgba(0, 0, 0, 1);
+            }
+            #filter-box > .filter.inactive {
+                background-color: rgb(220, 220, 220);
+            }
+
+            #handi-filter.filter.active {
+                background-color: blue;
+            }
+
         </style>
 
         <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
@@ -219,13 +264,18 @@
         <title> Toilettes Bordeaux </title>
     </head>
 
-    <!--
-TODO:
-* geoloc all recycling centers.
--->
-
     <body>
         <div id="map"></div>
-
+        <div id="filter-box">
+            <div id="sanitaire-filter" class="filter active">
+                <i class="fa fa-female"></i><i class="fa fa-male"></i>
+            </div>
+            <div id="urinoir-filter" class="filter active">
+                <i class="fa fa-male urinoir"></i>
+            </div>
+            <div id="handi-filter" class="filter active">
+                <i class="fa fa-fw fa-wheelchair"></i>
+            </div>
+        </div>
     </body>
 </html>
