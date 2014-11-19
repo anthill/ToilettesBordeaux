@@ -4,9 +4,10 @@ var geo = require('./geolocation.js');
 var getToilets = require('./getJSON.js');
 var findClosests = require('./findClosests.js');
 var toiletMarkers = require('./setMarker.js');
-var activateFilters = require('./modeActivation.js')();
+var createInfos = require('./createInfos.js');
 var render = require('./renderMap.js');
-
+var activateFilters = require('./modeActivation.js');
+console.log('Markers ',toiletMarkers);
 var typologieToCSSClass = {
 	"Urinoir": "urinoir",
 	"Sanitaire automatique": "sanitaire",
@@ -58,10 +59,10 @@ toilettesP
         });
 	});
 
-var position = geo();
+var positionP = geo();
 
 // When user and toilet positions are available:
-Promise.all([toilettesP, position])
+Promise.all([toilettesP, positionP])
 	.then(function(values){
 		var toilettes = values[0],
 			position = values[1];
@@ -69,7 +70,17 @@ Promise.all([toilettesP, position])
 		activateFilters(toilettes, position, modes);
 		toiletMarkers.activate(toilettes, position);
 
-		findClosests(toilettes, position);
+		findClosests(toilettes, position).then(function(itineraries){
+
+			var infos = itineraries.map(createInfos);
+
+			render({
+				toilettes: toilettes,
+				position: position,
+				infos: infos
+			});
+
+		});
 		
 	})
 	.catch(function(err){console.error(err);});

@@ -1,8 +1,15 @@
 'use strict';
 
 var L = require('leaflet');
+
 var U = require('./utilities.js');
 var map = require('./initializeMap.js');
+var geo = require('./geolocation.js');
+var createInfos = require('./createInfos.js');
+var findClosests = require('./findClosests.js');
+var toiletMarkers = require('./setMarker.js');
+
+console.log('Markers ',toiletMarkers);
 
 var toiletGroup = new L.LayerGroup();
 var userGroup = new L.LayerGroup();
@@ -21,10 +28,15 @@ function createUser(position){
 	return new L.Marker(position, {icon: icon});
 }
 
-function drawToilettes(list){
+function drawToilettes(list, position){
 	list.forEach(function(toilette){
+		toiletMarkers.set(toilette);
+
 		toiletGroup.addLayer(toilette.marker).addTo(map);
+
 	});
+
+	toiletMarkers.activate(list, position);
 }
 
 function drawInfos(infos){
@@ -99,8 +111,7 @@ function fitBounds(infos, position){
             marker: L.marker, 
             polyline: L.polyline
         }
-	],
-    updateGeolocation() : void
+	]
 }
 */
 
@@ -109,15 +120,29 @@ module.exports = function render(data){
 	console.log('Data ', data);
 	
 	if (data.position){
+		// map.removeLayer(userGroup);
 		userGroup.clearLayers();
 
 		var userPositionMarker = createUser(data.position);
 
 		// Add click event on user position
 		userPositionMarker.addEventListener('click', function(){
-			data.updateGeolocation();
+			geo()
+				.then(function(position){
+					return findClosests(data.toilettes, position);
+				})
+				.then(function(itineraries){
+					var infos = itineraries.map(createInfos);
+
+					render({
+						toilettes: data.toilettes,
+						position: data.position,
+						infos: infos
+					});
+
+				});
+
             infosGroup.clearLayers();
-			render(data);
 		});
 
 		// draw marker
@@ -127,17 +152,7 @@ module.exports = function render(data){
 	// draw data.toilettes
 	if (data.toilettes){
 		toiletGroup.clearLayers();
-		drawToilettes(data.toilettes, data.position, data.infos);
-	}
-
-	// draw data.singleInfos
-	if (data.singleInfos){
-        throw new Error('use .infos');
-	}
-
-	// draw data.closestInfos
-	if (data.closestInfos && !data.singleInfos){
-        throw new Error('use .infos');
+		drawToilettes(data.toilettes, data.position);
 	}
     
     if(Array.isArray(data.infos)){

@@ -1,8 +1,8 @@
 'use strict';
 var L = require('leaflet');
 
-module.exports = function(toilet, index){
-	console.log('Les plus proches: ', toilet);
+module.exports = function(itinerary, index){
+	console.log('Les plus proches: ', itinerary);
 
 	var rank = '';
 	var color = '#000000';
@@ -13,8 +13,8 @@ module.exports = function(toilet, index){
 	}
 	
 	// Get route points
-	var destination = L.latLng(toilet.mc.destination.k, toilet.mc.destination.B);
-	var route = toilet.routes[0];
+	var destination = L.latLng(itinerary.mc.destination.k, itinerary.mc.destination.B);
+	var route = itinerary.routes[0];
 	var path = route.overview_path;
 	var routeLatLng = [];
 	for (var j = 0; j < path.length; j++)

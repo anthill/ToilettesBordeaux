@@ -1,9 +1,10 @@
 'use strict';
 
-var itinerary = require('./itCalculation.js');
-var addInfos = require('./addInfos.js');
-var render = require('./renderMap.js');
 var L = require('leaflet');
+
+var itinerary = require('./itCalculation.js');
+var createInfos = require('./createInfos.js');
+var render = require('./renderMap.js');
 
 
 function set(toilet){
@@ -41,9 +42,9 @@ function activate(toilets, position){
                 .then(function(result){
 
                     render({
-                        toilettes: undefined,
+                        toilettes: toilets,
                         position: position,
-                        infos : [ addInfos(result, 1) ]
+                        infos : [ createInfos(result, 1) ]
                     });
 
                 }).catch(function(err){console.error(err);});
