@@ -1,6 +1,6 @@
 'use strict';
 
-// var displayModes = require('./mapFunctions.js')().displayModes;
+var U = require('./utilities');
 var findClosests = require('./findClosests.js');
 
 var filterMap = {
@@ -42,12 +42,7 @@ module.exports = function(){
 		return modes;
 	}
 
-	function filterToilets(list, types){
-		return list.filter(function(toilette){
-			return types.indexOf(toilette.class) !== -1 ||
-				((types.indexOf('handicap') !== -1) && toilette.handicap);
-		});
-	}
+	
 
 	var ret = function (toilettes, position, modes){
 
@@ -64,7 +59,7 @@ module.exports = function(){
 				modes = activateAll(modes);
 			}
 
-			var selection = filterToilets(toilettes, modes);
+			var selection = U.filterToilets(toilettes, modes);
 			findClosests(selection, position);
 		}
 

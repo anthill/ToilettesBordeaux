@@ -3,6 +3,7 @@
 var geo = require('./geolocation.js');
 var getToilets = require('./getJSON.js');
 var findClosests = require('./findClosests.js');
+var toiletMarkers = require('./setMarker.js');
 var activateFilters = require('./modeActivation.js')();
 var L = require('leaflet');
 
@@ -26,30 +27,7 @@ function updatePosition(position){
 	};
 }
 
-function setMarker(toilet){
-	// Add icons from FontAwesome
-	var myHtml = '';
 
-	if (toilet.class === 'sanitaire') {
-		myHtml += '<i class="fa fa-female"></i><i class="fa fa-male"></i>\n';
-	}
-	else {
-		myHtml += '<i class="fa fa-male urinoir"></i>\n';
-	}
-	
-	if (toilet.handicap === true){
-		myHtml += '<div class="pins"><i class="fa fa-fw fa-wheelchair"></i></div>\n';
-	} 
-
-	var icon = L.divIcon({
-		className: "icon",
-		iconSize: new L.Point(46, 46),
-		iconAnchor: new L.Point(23, 23),
-		html: myHtml
-	});
-
-	toilet.marker = L.marker([toilet.lat, toilet.lng], {icon: icon});
-}
 
 
 /// MAIN CODE
@@ -84,7 +62,7 @@ var modes = ['urinoir', 'sanitaire', 'handicap'];
 toilettesP
 	.then(function(toilettes){
 		toilettes.forEach(function(element){
-			setMarker(element);
+			toiletMarkers.set(element);
 		});
 	});
 
@@ -97,6 +75,7 @@ Promise.all([toilettesP, position])
 			position = values[1];
 
 		activateFilters(toilettes, position, modes);
+		toiletMarkers.activate(toilettes, position);
 
 		findClosests(toilettes, position);
 		

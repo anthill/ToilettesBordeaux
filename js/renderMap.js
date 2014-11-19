@@ -45,23 +45,6 @@ function drawToilettes(list, position, closest){
 
 		toiletGroup.addLayer(toilette.marker).addTo(map);
 
-		// Add click event on toilet
-		toilette.marker.addEventListener('click', function(){
-
-			itinerary(position, toilette)
-				.then(function(result){
-					var infos = [];
-					infos.push(addInfos(result, 1));
-					
-					render({
-						toilettes: list,
-						position: position,
-						singleInfos: infos,
-						closestInfos: closest
-					});
-
-				}).catch(function(err){console.error(err);});
-		});
 	});
 }
 
@@ -108,20 +91,24 @@ function getLats(toilets, position){
 	var lats = [position.lat];
 
 	toilets.forEach(function(toilet){
-		lats.push(toilet.marker._latlng.lat);
+		toilet.polyline._latlngs.forEach(function(latLng){
+			lats.push(latLng.lat);
+		});
 	});
 	
 	return lats;
 }
 
 function getLngs(toilets, position){
-	var lats = [position.lng];
+	var lngs = [position.lng];
 
 	toilets.forEach(function(toilet){
-		lats.push(toilet.marker._latlng.lng);
+		toilet.polyline._latlngs.forEach(function(latLng){
+			lngs.push(latLng.lng);
+		});
 	});
 	
-	return lats;
+	return lngs;
 }
 
 function fitBounds(infos, position){
@@ -137,13 +124,11 @@ function fitBounds(infos, position){
 
 function render(data){
 
-	// remove all data layer
-	toiletGroup.clearLayers();
-	userGroup.clearLayers();
-
 	console.log('Data ', data);
 	
 	if (data.position){
+		userGroup.clearLayers();
+
 		var marker = createUser(data.position);
 
 		// Add click event on user position
@@ -162,10 +147,11 @@ function render(data){
 		userGroup.addLayer(marker).addTo(map);
 	}
 	
-
-	// console.log('closest ', data.closestGroup);
 	// draw data.toilettes
-	drawToilettes(data.toilettes, data.position, data.closestInfos);
+	if (data.toilettes){
+		toiletGroup.clearLayers();
+		drawToilettes(data.toilettes, data.position, data.closestInfos);
+	}
 
 	// draw data.singleInfos
 	if (data.singleInfos){

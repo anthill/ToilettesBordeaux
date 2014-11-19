@@ -4,7 +4,8 @@ var itinerary = require('./itCalculation.js');
 var addInfos = require('./addInfos.js');
 var render = require('./renderMap.js');
 
-function findClosests(list, position){
+
+module.exports = function(list, position){
 
 	list.forEach(function(toilette){
 		// Calculate rough distance b/w user and toilet
@@ -52,7 +53,6 @@ function findClosests(list, position){
 		});
 
 	}).catch(function(err){console.error(err);});
-}
+};
 
 
-module.exports = findClosests;
