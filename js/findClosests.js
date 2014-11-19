@@ -1,7 +1,7 @@
 'use strict';
 
 var itinerary = require('./itCalculation.js');
-var addInfos = require('./addInfos.js');
+var createInfos = require('./createInfos.js');
 var render = require('./renderMap.js');
 
 
@@ -38,21 +38,14 @@ module.exports = function(list, position){
 			return -(a.routes[0].legs[0].distance.value - b.routes[0].legs[0].distance.value);
 		});
 
-		var infos = [];
-
-		// Create itinerary infos for 3 closest toilets
-		toilets.forEach(function(toilet, i){
-			infos.push(addInfos(toilet, i));
-		});
+        // Create itinerary infos for 3 closest toilets
+		var infos = toilets.map(createInfos);
 
 		render({
 			toilettes: list,
 			position: position,
-			singleInfos: undefined,
-			closestInfos: infos
+			infos: infos
 		});
 
 	}).catch(function(err){console.error(err);});
 };
-
-

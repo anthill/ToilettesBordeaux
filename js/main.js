@@ -5,8 +5,7 @@ var getToilets = require('./getJSON.js');
 var findClosests = require('./findClosests.js');
 var toiletMarkers = require('./setMarker.js');
 var activateFilters = require('./modeActivation.js')();
-var L = require('leaflet');
-
+var render = require('./renderMap.js');
 
 var typologieToCSSClass = {
 	"Urinoir": "urinoir",
@@ -14,19 +13,6 @@ var typologieToCSSClass = {
 	"Sanitaire automatique avec urinoir": "sanitaire",
 	"Chalet de nécessité": "sanitaire"
 };
-
-
-// Get user position
-function updatePosition(position){
-	var latitude  = position.coords.latitude;
-	var longitude = position.coords.longitude;
-
-	return {
-		lat: latitude,
-		lng: longitude
-	};
-}
-
 
 
 
@@ -64,9 +50,15 @@ toilettesP
 		toilettes.forEach(function(element){
 			toiletMarkers.set(element);
 		});
+    
+        render({
+            toilettes: toilettes,
+            position: undefined,
+            infos : undefined
+        });
 	});
 
-var position = geo(updatePosition);
+var position = geo();
 
 // When user and toilet positions are available:
 Promise.all([toilettesP, position])
@@ -81,8 +73,3 @@ Promise.all([toilettesP, position])
 		
 	})
 	.catch(function(err){console.error(err);});
-
-
-
-
-

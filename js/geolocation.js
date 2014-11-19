@@ -1,10 +1,20 @@
 'use strict';
 
-module.exports = function(f){
+function formatGeoloc(position){
+	var latitude  = position.coords.latitude;
+	var longitude = position.coords.longitude;
+
+	return {
+		lat: latitude,
+		lng: longitude
+	};
+}
+
+module.exports = function(){
 
 	return new Promise(function(resolve, reject){
 		function success(position){
-			resolve(f(position));
+			resolve(formatGeoloc(position));
 		}
 
 		function error(){

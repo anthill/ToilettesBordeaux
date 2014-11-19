@@ -3,29 +3,10 @@
 var L = require('leaflet');
 var U = require('./utilities.js');
 var map = require('./initializeMap.js');
-var itinerary = require('./itCalculation.js');
-var addInfos = require('./addInfos.js');
-
-/* data :
-{
-	toilettes: Toilet[],
-	position: {
-		long: number,
-		lat: number
-	},
-	infos: [
-	{
-		marker: L.marker, 
-		polyline: L.polyline
-	},
-	...]
-}
-*/
 
 var toiletGroup = new L.LayerGroup();
 var userGroup = new L.LayerGroup();
-var closestGroup = new L.LayerGroup();
-var singleGroup = new L.LayerGroup();
+var infosGroup = new L.LayerGroup();
 
 
 function createUser(position){
@@ -40,38 +21,22 @@ function createUser(position){
 	return new L.Marker(position, {icon: icon});
 }
 
-function drawToilettes(list, position, closest){
+function drawToilettes(list){
 	list.forEach(function(toilette){
-
 		toiletGroup.addLayer(toilette.marker).addTo(map);
-
 	});
 }
 
-function drawSingleInfos(infos){
-	map.removeLayer(closestGroup);
-	singleGroup.clearLayers();
-
-	console.log('infos ', infos);
+function drawInfos(infos){
+	map.removeLayer(infosGroup);
+	infosGroup.clearLayers();
 
 	infos.forEach(function(info){
-		singleGroup.addLayer(info.marker);
-		singleGroup.addLayer(info.polyline);
+		infosGroup.addLayer(info.marker);
+		infosGroup.addLayer(info.polyline);
 	});
 
-	singleGroup.addTo(map);
-}
-
-function drawClosestInfos(infos){
-	map.removeLayer(singleGroup);
-	closestGroup.clearLayers();
-
-	infos.forEach(function(info){
-		closestGroup.addLayer(info.marker);
-		closestGroup.addLayer(info.polyline);
-	});
-
-	closestGroup.addTo(map);
+	infosGroup.addTo(map);
 }
 
 function calculateBounds(lats, lngs){
@@ -122,49 +87,62 @@ function fitBounds(infos, position){
 	});
 } 
 
-function render(data){
+/* data :
+{
+	toilettes: Toilet[],
+	position: { // user geolocation
+		lng: number,
+		lat: number
+	},
+	infos: [
+        {
+            marker: L.marker, 
+            polyline: L.polyline
+        }
+	],
+    updateGeolocation() : void
+}
+*/
+
+module.exports = function render(data){
 
 	console.log('Data ', data);
 	
 	if (data.position){
 		userGroup.clearLayers();
 
-		var marker = createUser(data.position);
+		var userPositionMarker = createUser(data.position);
 
 		// Add click event on user position
-		marker.addEventListener('click', function(){
-			console.log('test');
-			singleGroup.clearLayers();
-			render({
-				toilettes: data.toilettes,
-				position: data.position,
-				singleInfos: undefined,
-				closestInfos: data.closestInfos
-			});
+		userPositionMarker.addEventListener('click', function(){
+			data.updateGeolocation();
+            infosGroup.clearLayers();
+			render(data);
 		});
 
 		// draw marker
-		userGroup.addLayer(marker).addTo(map);
+		userGroup.addLayer(userPositionMarker).addTo(map);
 	}
 	
 	// draw data.toilettes
 	if (data.toilettes){
 		toiletGroup.clearLayers();
-		drawToilettes(data.toilettes, data.position, data.closestInfos);
+		drawToilettes(data.toilettes, data.position, data.infos);
 	}
 
 	// draw data.singleInfos
 	if (data.singleInfos){
-		drawSingleInfos(data.singleInfos);
-		fitBounds(data.singleInfos, data.position);
+        throw new Error('use .infos');
 	}
 
 	// draw data.closestInfos
 	if (data.closestInfos && !data.singleInfos){
-		drawClosestInfos(data.closestInfos);
-		fitBounds(data.closestInfos, data.position);
+        throw new Error('use .infos');
 	}
+    
+    if(Array.isArray(data.infos)){
+        drawInfos(data.infos);
+		fitBounds(data.infos, data.position);
+    }
 	
-}
-
-module.exports = render;
+};

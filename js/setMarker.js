@@ -3,7 +3,7 @@
 var itinerary = require('./itCalculation.js');
 var addInfos = require('./addInfos.js');
 var render = require('./renderMap.js');
-var U = require('./utilities.js');
+var L = require('leaflet');
 
 
 function set(toilet){
@@ -37,35 +37,16 @@ function activate(toilets, position){
 
 		toilet.marker.addEventListener('click', function(){
 
-		// var filterButtons = document.getElementsByClassName('filter');
-		// var modes = [];
+            itinerary(position, toilet)
+                .then(function(result){
 
-		// if (filterButtons[0].className === 'filter active')
-		// 	modes.push('urinoir');
-		// if (filterButtons[1].className === 'filter active')
-		// 	modes.push('sanitaire');
-		// if (filterButtons[2].className === 'filter active')
-		// 	modes.push('handicap');
+                    render({
+                        toilettes: undefined,
+                        position: position,
+                        infos : [ addInfos(result, 1) ]
+                    });
 
-		// console.log('Active modes ', modes);
-
-		// var filteredList = U.filterToilets(list, modes);
-
-		// console.log('Filtered list ', filteredList);
-
-		itinerary(position, toilet)
-			.then(function(result){
-				var infos = [];
-				infos.push(addInfos(result, 1));
-				
-				render({
-					toilettes: undefined,
-					position: position,
-					singleInfos: infos,
-					closestInfos: undefined
-				});
-
-			}).catch(function(err){console.error(err);});
+                }).catch(function(err){console.error(err);});
 		});
 
 	});
