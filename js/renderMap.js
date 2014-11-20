@@ -1,8 +1,13 @@
 'use strict';
 
 var L = require('leaflet');
+
 var U = require('./utilities.js');
 var map = require('./initializeMap.js');
+var geo = require('./geolocation.js');
+var createInfos = require('./createInfos.js');
+var findClosests = require('./findClosests.js');
+var itinerary = require('./itCalculation.js');
 
 var toiletGroup = new L.LayerGroup();
 var userGroup = new L.LayerGroup();
@@ -21,9 +26,53 @@ function createUser(position){
 	return new L.Marker(position, {icon: icon});
 }
 
-function drawToilettes(list){
-	list.forEach(function(toilette){
-		toiletGroup.addLayer(toilette.marker).addTo(map);
+function drawToilet(toilet){
+	// Add icons from FontAwesome
+	var myHtml = '';
+
+	if (toilet.class === 'sanitaire') {
+		myHtml += '<i class="fa fa-female"></i><i class="fa fa-male"></i>\n';
+	}
+	else {
+		myHtml += '<i class="fa fa-male urinoir"></i>\n';
+	}
+	
+	if (toilet.handicap === true){
+		myHtml += '<div class="pins"><i class="fa fa-fw fa-wheelchair"></i></div>\n';
+	} 
+
+	var icon = L.divIcon({
+		className: "icon",
+		iconSize: new L.Point(46, 46),
+		iconAnchor: new L.Point(23, 23),
+		html: myHtml
+	});
+
+	return L.marker([toilet.lat, toilet.lng], {icon: icon});
+	
+}
+
+function drawToilettes(list, position){
+	list.forEach(function(toilet){
+		var marker = drawToilet(toilet);
+
+		toiletGroup.addLayer(marker).addTo(map);
+		if(position){
+			marker.addEventListener('click', function(){
+
+				itinerary(position, toilet)
+					.then(function(result){
+
+						render({
+							toilettes: list,
+							position: position,
+							infos : [ createInfos(result, 1) ]
+						});
+
+					}).catch(function(err){console.error(err);});
+			});
+		}
+
 	});
 }
 
@@ -95,29 +144,42 @@ function fitBounds(infos, position){
 		lat: number
 	},
 	infos: [
-        {
-            marker: L.marker, 
-            polyline: L.polyline
-        }
-	],
-    updateGeolocation() : void
+		{
+			marker: L.marker, 
+			polyline: L.polyline
+		}
+	]
 }
 */
 
-module.exports = function render(data){
+function render(data){
 
 	console.log('Data ', data);
 	
 	if (data.position){
+		// map.removeLayer(userGroup);
 		userGroup.clearLayers();
 
 		var userPositionMarker = createUser(data.position);
 
 		// Add click event on user position
 		userPositionMarker.addEventListener('click', function(){
-			data.updateGeolocation();
-            infosGroup.clearLayers();
-			render(data);
+			geo()
+				.then(function(position){
+					return findClosests(data.toilettes, position);
+				})
+				.then(function(itineraries){
+					var infos = itineraries.map(createInfos);
+
+					render({
+						toilettes: data.toilettes,
+						position: data.position,
+						infos: infos
+					});
+
+				});
+
+			infosGroup.clearLayers();
 		});
 
 		// draw marker
@@ -125,24 +187,16 @@ module.exports = function render(data){
 	}
 	
 	// draw data.toilettes
-	if (data.toilettes){
-		toiletGroup.clearLayers();
-		drawToilettes(data.toilettes, data.position, data.infos);
-	}
-
-	// draw data.singleInfos
-	if (data.singleInfos){
-        throw new Error('use .infos');
-	}
-
-	// draw data.closestInfos
-	if (data.closestInfos && !data.singleInfos){
-        throw new Error('use .infos');
-	}
-    
-    if(Array.isArray(data.infos)){
-        drawInfos(data.infos);
-		fitBounds(data.infos, data.position);
-    }
 	
-};
+	toiletGroup.clearLayers();
+	drawToilettes(data.toilettes, data.position);
+	
+	
+	if(Array.isArray(data.infos)){
+		drawInfos(data.infos);
+		fitBounds(data.infos, data.position);
+	}
+	
+}
+
+module.exports = render;
