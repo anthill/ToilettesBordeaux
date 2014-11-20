@@ -247,7 +247,7 @@
         </style>
 
         <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
-
+        
         <script>
         /*!
          * @overview es6-promise - a tiny implementation of Promises/A+.
@@ -267,6 +267,12 @@ k.prototype.q=function(a,b){var c=this;u(a,void 0,function(a){c.g(1,b,a)},functi
 q(c,a);return c};h.reject=function(a,b){var c=new this(p,b);g(c,a);return c};h.prototype={constructor:h,then:function(a,b,c){var d=this.a;if(1===d&&!a||2===d&&!b)return this;this.d=null;var e=new this.constructor(p,c),f=this.b;if(d){var g=arguments[d-1];r(function(){C(d,e,g,f)})}else u(this,e,a,b);return e},"catch":function(a,b){return this.then(null,a,b)}};var z={Promise:h,r:function(){var a;a="undefined"!==typeof global?global:"undefined"!==typeof window&&window.document?window:self;"Promise"in
 a&&"resolve"in a.Promise&&"reject"in a.Promise&&"all"in a.Promise&&"race"in a.Promise&&function(){var b;new a.Promise(function(a){b=a});return s(b)}()||(a.Promise=h)}};"function"===typeof define&&define.amd?define(function(){return z}):"undefined"!==typeof module&&module.exports?module.exports=z:"undefined"!==typeof this&&(this.ES6Promise=z)}).call(this);
 
+        </script>
+        
+        <script>
+            // pending https://github.com/jakearchibald/es6-promise/issues/59
+            if(typeof Promise !== 'function')
+                Promise = ES6Promise.Promise;
         </script>
         
         <script>
