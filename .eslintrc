@@ -8,6 +8,7 @@
         "dot-notation": 0,
         "no-shadow": 1,
         "curly": 0,
+        "no-use-before-define": "no-func",
         
         "quotes": 0,
         "no-trailing-spaces": 0,
