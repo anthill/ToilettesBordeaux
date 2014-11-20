@@ -1,6 +1,5 @@
 'use strict';
 
-var U = require('./utilities');
 var findClosests = require('./findClosests.js');
 var createInfos = require('./createInfos.js');
 var render = require('./renderMap.js');
@@ -40,6 +39,13 @@ function deactivateAll(modes){
 
 	return modes;
 }
+
+function filterToilets(list, types){
+	return list.filter(function(toilette){
+		return types.indexOf(toilette.class) !== -1 ||
+			((types.indexOf('handicap') !== -1) && toilette.handicap);
+	});
+}
 	
 module.exports = function(toilettes, position, modes){
 
@@ -56,7 +62,7 @@ module.exports = function(toilettes, position, modes){
 			modes = activateAll(modes);
 		}
 
-		var selection = U.filterToilets(toilettes, modes);
+		var selection = filterToilets(toilettes, modes);
 		findClosests(selection, position).then(function(itineraries){
 
 			var infos = itineraries.map(createInfos);
