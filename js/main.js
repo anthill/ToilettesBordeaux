@@ -44,6 +44,7 @@ var toilettesP = getToilets('data/toilettes.json')
 
 var modes = ['urinoir', 'sanitaire', 'handicap'];
 
+
 // render points on map regardless of geolocation
 toilettesP
 	.then(function(toilettes){
@@ -52,17 +53,16 @@ toilettesP
             position: undefined,
             infos : undefined
         });
+        activateFilters(toilettes, modes);
 	});
 
-var positionP = geo();
+var positionP = geo.getCurrentPosition();
 
 // When user and toilet positions are available:
 Promise.all([toilettesP, positionP])
 	.then(function(values){
 		var toilettes = values[0],
 			position = values[1];
-
-		activateFilters(toilettes, position, modes);
 
 		findClosests(toilettes, position).then(function(itineraries){
 
