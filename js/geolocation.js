@@ -10,20 +10,33 @@ function formatGeoloc(position){
 	};
 }
 
-module.exports = function(){
+var lastPosition;
 
-	return new Promise(function(resolve, reject){
-		function success(position){
-			resolve(formatGeoloc(position));
-		}
+var exp = {
+    // ES5 getters break IE8. Should we give a shit?
+    get lastPosition(){
+        return lastPosition;
+    },
+    
+    getCurrentPosition : function(){
 
-		function error(){
-			// do something
-			// offline bheaviour (or the user rejected the localization)
-			// display a message telling the user that the app couldn't calculate itineraries or something
-			reject('error');
-		}
+        return new Promise(function(resolve, reject){
+            function success(position){
+                var pos = formatGeoloc(position);
+                lastPosition = pos;
+                resolve(pos);
+            }
 
-		navigator.geolocation.getCurrentPosition(success, error);
-	});	
+            function error(){
+                // do something
+                // offline bheaviour (or the user rejected the localization)
+                // display a message telling the user that the app couldn't calculate itineraries or something
+                reject('error');
+            }
+
+            navigator.geolocation.getCurrentPosition(success, error);
+        });	
+    }
 };
+
+module.exports = exp;

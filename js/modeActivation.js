@@ -1,9 +1,10 @@
 'use strict';
 
-var U = require('./utilities');
 var findClosests = require('./findClosests.js');
 var createInfos = require('./createInfos.js');
 var render = require('./renderMap.js');
+var geo = require('./geolocation.js');
+
 
 var filterMap = {
 	"urinoir-filter": "urinoir",
@@ -40,8 +41,15 @@ function deactivateAll(modes){
 
 	return modes;
 }
+
+function filterToilets(list, types){
+	return list.filter(function(toilette){
+		return types.indexOf(toilette.class) !== -1 ||
+			((types.indexOf('handicap') !== -1) && toilette.handicap);
+	});
+}
 	
-module.exports = function(toilettes, position, modes){
+module.exports = function(toilettes, modes){
 
 	function clickHandle(){
 		if (modes.length === 3){ // if all is selected (default), click selects rather than deselects
@@ -56,18 +64,28 @@ module.exports = function(toilettes, position, modes){
 			modes = activateAll(modes);
 		}
 
-		var selection = U.filterToilets(toilettes, modes);
-		findClosests(selection, position).then(function(itineraries){
+		var selection = filterToilets(toilettes, modes);
+        
+        // filter regardless of being able to geolocate
+        render({
+            toilettes: selection,
+            position: geo.lastPosition,
+            infos: undefined
+        });
+        
+        if(geo.lastPosition){
+            findClosests(selection, geo.lastPosition).then(function(itineraries){
 
-			var infos = itineraries.map(createInfos);
+                var infos = itineraries.map(createInfos);
 
-			render({
-				toilettes: selection,
-				position: position,
-				infos: infos
-			});
+                render({
+                    toilettes: selection,
+                    position: geo.lastPosition,
+                    infos: infos
+                });
 
-		});
+            });
+        }
 	}
 
 	// For 'urinoir'
