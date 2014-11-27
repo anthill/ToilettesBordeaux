@@ -2,7 +2,7 @@
 var L = require('leaflet');
 
 module.exports = function(itinerary, index){
-	console.log('Les plus proches: ', itinerary);
+	// console.log('Les plus proches: ', itinerary);
 
 	var rank = '';
 	var color = '#000000';
@@ -11,9 +11,10 @@ module.exports = function(itinerary, index){
 		rank += 'first';
 		color = '#008200';
 	}
-	
+
 	// Get route points
-	var destination = L.latLng(itinerary.mc.destination.k, itinerary.mc.destination.B);
+	var destination = L.latLng(itinerary.lc.destination.k, itinerary.lc.destination.B);
+
 	var route = itinerary.routes[0];
 	var path = route.overview_path;
 	var routeLatLng = [];
@@ -45,7 +46,7 @@ module.exports = function(itinerary, index){
 		iconAnchor: myAnchor,
 		html: time + '<div class="subInfos">' + distance + ' m </div>'
 	});
-	
+
 	var marker = L.marker(destination, {icon: infos});
 
 	// Create route

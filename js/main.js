@@ -66,7 +66,12 @@ Promise.all([toilettesP, positionP])
 
 		findClosests(toilettes, position).then(function(itineraries){
 
+			console.log('Position :', position);
+			console.log('Itineraries :', itineraries);
+
 			var infos = itineraries.map(createInfos);
+
+			console.log('Infos :', infos);
 
 			render({
 				toilettes: toilettes,
@@ -74,7 +79,8 @@ Promise.all([toilettesP, positionP])
 				infos: infos
 			});
 
-		});
+		})
+		.catch(function(err){console.error(err);});
 		
 	})
 	.catch(function(err){console.error(err);});
