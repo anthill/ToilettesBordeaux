@@ -165,7 +165,7 @@ function render(data){
 
 		// Add click event on user position
 		userPositionMarker.addEventListener('click', function(){
-			geo().getCurrentPosition()
+			geo.getCurrentPosition()
 				.then(function(position){
 					return findClosests(data.toilettes, position);
 				})
