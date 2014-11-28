@@ -13,9 +13,10 @@ module.exports = function(itinerary, index){
 	}
 
 	// Get route points
-	var destination = L.latLng(itinerary.lc.destination.k, itinerary.lc.destination.B);
-
 	var route = itinerary.routes[0];
+
+	var destination = L.latLng(route.legs[0].end_location.k, route.legs[0].end_location.B);
+
 	var path = route.overview_path;
 	var routeLatLng = [];
 	for (var j = 0; j < path.length; j++)
