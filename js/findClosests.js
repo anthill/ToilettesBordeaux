@@ -5,7 +5,7 @@ var itinerary = require('./itCalculation.js');
 
 module.exports = function(list, position){
 
-	console.log('list ', list);
+	// console.log('list ', list);
 
 	list.forEach(function(toilette){
 		// Calculate rough distance b/w user and toilet

@@ -154,9 +154,10 @@ function fitBounds(infos, position){
 
 function render(data){
 
-	console.log('Data ', data);
+	// console.log('Data ', data);
 	
 	if (data.position){
+		console.log('Position found');
 		// map.removeLayer(userGroup);
 		userGroup.clearLayers();
 
@@ -164,7 +165,7 @@ function render(data){
 
 		// Add click event on user position
 		userPositionMarker.addEventListener('click', function(){
-			geo().getCurrentPosition()
+			geo.getCurrentPosition()
 				.then(function(position){
 					return findClosests(data.toilettes, position);
 				})
@@ -193,6 +194,7 @@ function render(data){
 	
 	
 	if(Array.isArray(data.infos)){
+		console.log('Fit bounds');
 		drawInfos(data.infos);
 		fitBounds(data.infos, data.position);
 	}
