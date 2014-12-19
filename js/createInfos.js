@@ -14,13 +14,14 @@ module.exports = function(itinerary, index){
 
 	// Get route points
 	var route = itinerary.routes[0];
+	console.log('test :', itinerary);
 
-	var destination = L.latLng(route.legs[0].end_location.k, route.legs[0].end_location.B);
+	var destination = L.latLng(route.legs[0].end_location.lat(), route.legs[0].end_location.lng());
 
 	var path = route.overview_path;
 	var routeLatLng = [];
 	for (var j = 0; j < path.length; j++)
-		routeLatLng[j] = {lat: path[j].k, lng: path[j].B};
+		routeLatLng[j] = {lat: path[j].lat(), lng: path[j].lng()};
 
 	// Create and add infos on the route
 	var itTime = route.legs[0].duration.value;
