@@ -6,7 +6,8 @@
   "scripts": {
     "build": "browserify js/main.js -o app.js -d",
     "start": "devserver",
-    "test": "node test/index.js",
+    "test-server": "devserver -p 9184",
+    "test": "casperjs test test/casper",
     "watch": "watchify js/main.js -o app.js -d -v",
     "serve": "devserver",
     "lint": "eslint js/"

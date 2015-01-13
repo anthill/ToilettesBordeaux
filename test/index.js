@@ -1,5 +1,9 @@
 "use strict";
 
+/*
+    WARNING : for unknown reasons, this doesn't work.
+*/
+
 var exec = require('child_process').exec;
 var kill = require('tree-kill');
 
